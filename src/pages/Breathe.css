@@ -1,0 +1,110 @@
+/* ============================================================
+   호흡하기 — 몰입형 연출 (색상 그라데이션 · 전체화면 물결)
+   ============================================================ */
+
+/* 세션 진행 중 전체화면 물결 배경 */
+.breath-canvas {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+  /* 페이즈 색으로 부드럽게 물드는 배경 */
+  background: var(--phase-color, #8a9a82);
+  opacity: 0.14;
+  transition: background-color var(--phase-dur, 4s) ease-in-out,
+    opacity var(--phase-dur, 4s) ease-in-out;
+}
+/* 들숨엔 화면이 차오르고, 날숨엔 가라앉음 */
+.breath-canvas.is-inhale { opacity: 0.26; }
+.breath-canvas.is-exhale { opacity: 0.08; }
+
+/* 화면 전체가 숨쉬는 느낌의 큰 방사형 글로우 */
+.breath-canvas::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 140vmax;
+  height: 140vmax;
+  transform: translate(-50%, -50%) scale(var(--breath-scale, 1));
+  background: radial-gradient(
+    circle,
+    var(--phase-color, #8a9a82) 0%,
+    transparent 55%
+  );
+  opacity: 0.5;
+  transition: transform var(--phase-dur, 4s) ease-in-out,
+    background-color var(--phase-dur, 4s) ease-in-out;
+}
+
+/* 싱잉볼 파동 리플 (동심원이 퍼져나감) */
+.ripple-layer {
+  position: fixed;
+  left: 50%;
+  top: 50%;
+  z-index: 0;
+  pointer-events: none;
+}
+.ripple {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 220px;
+  height: 220px;
+  margin: -110px 0 0 -110px;
+  border-radius: 50%;
+  border: 2px solid var(--ripple-color, #8a9a82);
+  transform: scale(0.4);
+  opacity: 0.55;
+  animation: ripple-expand 5s cubic-bezier(0.22, 0.61, 0.36, 1) forwards;
+}
+@keyframes ripple-expand {
+  0% { transform: scale(0.4); opacity: 0.5; }
+  100% { transform: scale(6.5); opacity: 0; }
+}
+
+/* 진행 중 콘텐츠를 배경 위로 */
+.breathe-wrap { position: relative; z-index: 1; }
+
+/* 원(오브) — 색이 부드럽게 전환되도록 solid + 하이라이트 오버레이 */
+.breath-orb {
+  position: relative;
+  overflow: hidden;
+  background: var(--phase-color, #8a9a82) !important;
+  transition: transform var(--phase-dur, 4s) ease-in-out,
+    background-color var(--phase-dur, 4s) ease-in-out,
+    box-shadow var(--phase-dur, 4s) ease-in-out;
+}
+.breath-orb::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle at 35% 28%,
+    rgba(255, 255, 255, 0.6),
+    transparent 62%
+  );
+  pointer-events: none;
+}
+.breath-orb span { position: relative; z-index: 1; }
+
+/* 사운드 토글 */
+.sound-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.45rem 0.9rem;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: var(--bg-soft);
+  color: var(--ink-soft);
+  font-size: 0.85rem;
+  transition: all 0.2s var(--ease);
+}
+.sound-toggle:hover { border-color: var(--sage); color: var(--sage-deep); }
+
+@media (prefers-reduced-motion: reduce) {
+  .ripple, .breath-canvas, .breath-canvas::after, .breath-orb { transition: none; animation: none; }
+}

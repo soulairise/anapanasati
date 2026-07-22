@@ -8,25 +8,25 @@ export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
+    // 최초 세션 확인
     auth.getUser().then((u) => {
       setUser(u)
       setLoading(false)
     })
+    // 로그인/로그아웃 상태 변화 실시간 반영
+    const unsubscribe = auth.onChange((u) => setUser(u))
+    return unsubscribe
   }, [])
 
-  const signIn = async (email) => {
-    const u = await auth.signIn(email)
-    setUser(u)
-    return u
-  }
-
+  const signUp = (email, password) => auth.signUp(email, password)
+  const signIn = (email, password) => auth.signIn(email, password)
   const signOut = async () => {
     await auth.signOut()
     setUser(null)
   }
 
   return (
-    <AuthContext.Provider value={{ user, loading, signIn, signOut }}>
+    <AuthContext.Provider value={{ user, loading, signUp, signIn, signOut }}>
       {children}
     </AuthContext.Provider>
   )
