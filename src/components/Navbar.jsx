@@ -8,7 +8,9 @@ export default function Navbar() {
     <nav className="navbar">
       <div className="container navbar__inner">
         <NavLink to="/" className="navbar__brand">
-          🌬️ 숨결의 길 <span className="sub faint" style={{ fontWeight: 300, fontSize: '0.8rem' }}>Ānāpānasati</span>
+          <span className="brand-icon">🌬️</span>
+          <span className="brand-text">숨결의 길</span>
+          <span className="sub faint" style={{ fontWeight: 300, fontSize: '0.8rem' }}>Ānāpānasati</span>
         </NavLink>
         <div className="navbar__links">
           <NavLink to="/learn" className="navbar__link">배우기</NavLink>

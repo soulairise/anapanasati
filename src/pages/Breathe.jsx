@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { getStage } from '../data/stages'
 import { playBowl, getAudioContext, INHALE_FREQ, EXHALE_FREQ } from '../lib/bowl'
+import { createAmbient, AMBIENT_LABELS } from '../lib/ambient'
 import './Breathe.css'
 
 // 호흡 패턴: [들숨, 멈춤, 날숨, 멈춤] (초)
@@ -31,12 +32,32 @@ export default function Breathe() {
   const [soundOn, setSoundOn] = useState(true)
   const [ripples, setRipples] = useState([])
   const [orbScale, setOrbScale] = useState(0.6) // 작은 원으로 시작
+  const [ambientOn, setAmbientOn] = useState(true) // 배경음(파도/모닥불)
+  const [ambientKind, setAmbientKind] = useState(null) // 현재 재생 중인 배경음 종류
 
   const tickRef = useRef(null)
   const bowlRef = useRef(null) // 현재 울리는 싱잉볼 핸들
+  const ambientRef = useRef(null) // 배경음 핸들
   const rippleId = useRef(0)
   const soundOnRef = useRef(soundOn)
   soundOnRef.current = soundOn
+  const ambientOnRef = useRef(ambientOn)
+  ambientOnRef.current = ambientOn
+
+  // 배경음 시작 (파도/모닥불 랜덤)
+  const startAmbient = () => {
+    if (ambientRef.current) return
+    const a = createAmbient(0.3)
+    ambientRef.current = a
+    setAmbientKind(a.kind)
+  }
+  const stopAmbient = () => {
+    if (ambientRef.current) {
+      ambientRef.current.stop()
+      ambientRef.current = null
+    }
+    setAmbientKind(null)
+  }
 
   // 유효 페이즈만 (0초 페이즈는 건너뜀)
   const activePhases = pattern.phases
@@ -73,8 +94,8 @@ export default function Breathe() {
   const spawnRipple = (color) => {
     const id = ++rippleId.current
     setRipples((rs) => [...rs, { id, color }])
-    // 애니메이션 종료 후 제거
-    setTimeout(() => setRipples((rs) => rs.filter((r) => r.id !== id)), 5200)
+    // 애니메이션(스태거 포함) 종료 후 제거
+    setTimeout(() => setRipples((rs) => rs.filter((r) => r.id !== id)), 6200)
   }
 
   useEffect(() => {
@@ -111,6 +132,7 @@ export default function Breathe() {
   useEffect(() => {
     return () => {
       if (bowlRef.current) bowlRef.current.stop(0.2)
+      if (ambientRef.current) ambientRef.current.stop(0.2)
     }
   }, [])
 
@@ -119,6 +141,7 @@ export default function Breathe() {
     setElapsed(0)
     setOrbScale(0.6) // 작은 원에서 시작 → 첫 들숨에 커짐
     setRunning(true)
+    if (ambientOnRef.current) startAmbient() // 배경음(파도/모닥불) 재생
   }
 
   const stopSound = () => {
@@ -132,6 +155,17 @@ export default function Breathe() {
     setRunning(false)
     clearInterval(tickRef.current)
     stopSound()
+    stopAmbient()
+  }
+
+  // 배경음 켜기/끄기 (수행 중이면 즉시 반영)
+  const toggleAmbient = () => {
+    setAmbientOn((v) => {
+      const next = !v
+      if (!next) stopAmbient()
+      else if (running) startAmbient()
+      return next
+    })
   }
 
   const finish = () => {
@@ -160,17 +194,10 @@ export default function Breathe() {
   return (
     <div className="page">
       {running && (
-        <>
-          <div
-            className={`breath-canvas ${isInhale ? 'is-inhale' : ''} ${isExhale ? 'is-exhale' : ''}`}
-            style={stageVars}
-          />
-          <div className="ripple-layer">
-            {ripples.map((r) => (
-              <div key={r.id} className="ripple" style={{ '--ripple-color': r.color }} />
-            ))}
-          </div>
-        </>
+        <div
+          className={`breath-canvas ${isInhale ? 'is-inhale' : ''} ${isExhale ? 'is-exhale' : ''}`}
+          style={stageVars}
+        />
       )}
 
       <div className="container container--narrow breathe-wrap">
@@ -213,9 +240,17 @@ export default function Breathe() {
 
             <div className="setting-row" style={{ marginTop: '1.5rem' }}>
               <button className="sound-toggle" onClick={() => setSoundOn((v) => !v)}>
-                {soundOn ? '🔊 싱잉볼 소리 켜짐' : '🔇 소리 꺼짐'}
+                {soundOn ? '🔊 싱잉볼 켜짐' : '🔇 싱잉볼 꺼짐'}
+              </button>
+              <button className="sound-toggle" onClick={toggleAmbient}>
+                {ambientOn ? '🌊 파도 소리 켜짐' : '🔇 파도 소리 꺼짐'}
               </button>
             </div>
+            {ambientOn && (
+              <p className="faint text-center" style={{ fontSize: '0.82rem', marginTop: '0.6rem' }}>
+                잔잔한 파도 소리가 배경으로 재생됩니다
+              </p>
+            )}
 
             <div className="breathe-controls">
               <button className="btn btn--primary" onClick={start}>호흡 시작하기</button>
@@ -224,14 +259,26 @@ export default function Breathe() {
         ) : (
           <>
             <div className="breathe-stage">
-              <div
-                className="breath-orb"
-                style={{
-                  ...stageVars,
-                  transform: `scale(${orbScale})`,
-                }}
-              >
-                <span>{phaseRemain}</span>
+              <div className="orb-holder">
+                {/* 물결 파동 — 동그라미 정중앙에서 여러 겹으로 퍼짐 */}
+                <div className="ripple-set">
+                  {ripples.map((r) => (
+                    <div key={r.id} className="ripple" style={{ '--ripple-color': r.color }}>
+                      <span />
+                      <span />
+                      <span />
+                    </div>
+                  ))}
+                </div>
+                <div
+                  className="breath-orb"
+                  style={{
+                    ...stageVars,
+                    transform: `scale(${orbScale})`,
+                  }}
+                >
+                  <span>{phaseRemain}</span>
+                </div>
               </div>
               <div className="breath-phase-label">{PHASE_NAMES[phaseIdx]}</div>
               <div className="breath-timer">
@@ -242,6 +289,7 @@ export default function Breathe() {
             <div className="breathe-controls">
               <button
                 className="sound-toggle"
+                title="싱잉볼 소리"
                 onClick={() => {
                   setSoundOn((v) => {
                     if (v) stopSound()
@@ -249,7 +297,10 @@ export default function Breathe() {
                   })
                 }}
               >
-                {soundOn ? '🔊' : '🔇'}
+                {soundOn ? '🔊 싱잉볼' : '🔇 싱잉볼'}
+              </button>
+              <button className="sound-toggle" title="배경음 (파도)" onClick={toggleAmbient}>
+                {ambientOn ? (ambientKind ? AMBIENT_LABELS[ambientKind] : '🌊 파도') : '🔇 파도'}
               </button>
               <button className="btn btn--ghost" onClick={stop}>일시정지</button>
               <button className="btn btn--primary" onClick={finish}>마치고 기록하기</button>

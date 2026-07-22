@@ -38,11 +38,26 @@
     background-color var(--phase-dur, 4s) ease-in-out;
 }
 
-/* 싱잉볼 파동 리플 (동심원이 퍼져나감) */
-.ripple-layer {
-  position: fixed;
+/* 진행 중 콘텐츠를 배경 위로 */
+.breathe-wrap { position: relative; z-index: 1; }
+
+/* 원을 담는 고정 크기 영역 — 원이 최대로 커져도 아래 글자를 침범하지 않음 */
+.orb-holder {
+  position: relative;
+  width: 300px;
+  height: 300px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* 물결 파동 — 동그라미 정중앙에서 여러 겹의 동심원이 퍼져나감 */
+.ripple-set {
+  position: absolute;
   left: 50%;
   top: 50%;
+  width: 0;
+  height: 0;
   z-index: 0;
   pointer-events: none;
 }
@@ -50,26 +65,33 @@
   position: absolute;
   left: 0;
   top: 0;
-  width: 220px;
-  height: 220px;
-  margin: -110px 0 0 -110px;
+}
+/* 한 번의 파동 = 시차를 둔 3겹의 물결 링 (돌을 던진 듯 번지는 느낌) */
+.ripple span {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 60px;
+  height: 60px;
+  margin: -30px 0 0 -30px;
   border-radius: 50%;
-  border: 2px solid var(--ripple-color, #8a9a82);
-  transform: scale(0.4);
-  opacity: 0.55;
-  animation: ripple-expand 5s cubic-bezier(0.22, 0.61, 0.36, 1) forwards;
+  border: 1.5px solid var(--ripple-color, #8a9a82);
+  opacity: 0;
+  animation: ripple-wave 4.8s cubic-bezier(0.17, 0.62, 0.3, 1) forwards;
 }
-@keyframes ripple-expand {
-  0% { transform: scale(0.4); opacity: 0.5; }
-  100% { transform: scale(6.5); opacity: 0; }
+.ripple span:nth-child(2) { animation-delay: 0.45s; }
+.ripple span:nth-child(3) { animation-delay: 0.9s; }
+@keyframes ripple-wave {
+  0% { transform: scale(0.12); opacity: 0; }
+  10% { opacity: 0.5; }
+  60% { opacity: 0.22; }
+  100% { transform: scale(9); opacity: 0; }
 }
-
-/* 진행 중 콘텐츠를 배경 위로 */
-.breathe-wrap { position: relative; z-index: 1; }
 
 /* 원(오브) — 색이 부드럽게 전환되도록 solid + 하이라이트 오버레이 */
 .breath-orb {
   position: relative;
+  z-index: 1;
   overflow: hidden;
   background: var(--phase-color, #8a9a82) !important;
   transition: transform var(--phase-dur, 4s) ease-in-out,
@@ -106,5 +128,5 @@
 .sound-toggle:hover { border-color: var(--sage); color: var(--sage-deep); }
 
 @media (prefers-reduced-motion: reduce) {
-  .ripple, .breath-canvas, .breath-canvas::after, .breath-orb { transition: none; animation: none; }
+  .ripple span, .breath-canvas, .breath-canvas::after, .breath-orb { transition: none; animation: none; }
 }
