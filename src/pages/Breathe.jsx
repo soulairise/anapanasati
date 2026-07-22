@@ -30,6 +30,7 @@ export default function Breathe() {
   const [elapsed, setElapsed] = useState(0) // 초
   const [soundOn, setSoundOn] = useState(true)
   const [ripples, setRipples] = useState([])
+  const [orbScale, setOrbScale] = useState(0.6) // 작은 원으로 시작
 
   const tickRef = useRef(null)
   const bowlRef = useRef(null) // 현재 울리는 싱잉볼 핸들
@@ -42,9 +43,17 @@ export default function Breathe() {
     .map((sec, i) => ({ sec, name: PHASE_NAMES[i], idx: i }))
     .filter((p) => p.sec > 0)
 
-  // 페이즈 진입 시 연출: 싱잉볼 + 물결
+  // 페이즈 진입 시 연출: 원 크기 · 물결 · 싱잉볼
   const enterPhase = (idx, durSec) => {
     setPhaseIdx(idx)
+
+    // 원 크기: 들숨→커짐, 날숨→작아짐, 멈춤(1,3)→유지
+    if (idx === 0) setOrbScale(1.28)
+    else if (idx === 2) setOrbScale(0.6)
+
+    // 물결(시각 연출) — 들숨/날숨에 퍼짐
+    if (idx === 0) spawnRipple(PHASE_COLORS[0])
+    else if (idx === 2) spawnRipple(PHASE_COLORS[2])
 
     // 이전 소리 부드럽게 정리
     if (bowlRef.current) {
@@ -52,18 +61,13 @@ export default function Breathe() {
       bowlRef.current = null
     }
 
+    // 싱잉볼 소리 (켜져 있을 때만) — 멈춤(1,3)은 무음
     if (!soundOnRef.current) return
-
     if (idx === 0) {
-      // 들숨 — 높은 싱잉볼
-      bowlRef.current = playBowl(INHALE_FREQ, durSec, 0.5)
-      spawnRipple(PHASE_COLORS[0])
+      bowlRef.current = playBowl(INHALE_FREQ, durSec, 0.5) // 들숨: 높은 울림
     } else if (idx === 2) {
-      // 날숨 — 낮은 싱잉볼
-      bowlRef.current = playBowl(EXHALE_FREQ, durSec, 0.5)
-      spawnRipple(PHASE_COLORS[2])
+      bowlRef.current = playBowl(EXHALE_FREQ, durSec, 0.5) // 날숨: 낮은 울림
     }
-    // 멈춤(1,3)은 무음
   }
 
   const spawnRipple = (color) => {
@@ -113,6 +117,7 @@ export default function Breathe() {
   const start = () => {
     getAudioContext() // 사용자 제스처 시점에 오디오 활성화
     setElapsed(0)
+    setOrbScale(0.6) // 작은 원에서 시작 → 첫 들숨에 커짐
     setRunning(true)
   }
 
@@ -142,15 +147,14 @@ export default function Breathe() {
 
   const isInhale = phaseIdx === 0
   const isExhale = phaseIdx === 2
-  const orbScale = isInhale || phaseIdx === 1 ? 1.35 : 0.7
   const currentPhaseSec = pattern.phases[phaseIdx] || 1
   const phaseColor = PHASE_COLORS[phaseIdx]
 
-  // 배경/오브에 넘길 CSS 변수
+  // 배경/오브에 넘길 CSS 변수 (배경 물결도 원 크기를 따라 숨쉼)
   const stageVars = {
     '--phase-color': phaseColor,
     '--phase-dur': `${currentPhaseSec}s`,
-    '--breath-scale': isInhale || phaseIdx === 1 ? 1.15 : 0.75,
+    '--breath-scale': 0.75 + (orbScale - 0.6) * 0.5,
   }
 
   return (
