@@ -1,8 +1,10 @@
 import { NavLink } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
+import { usePremium } from '../context/PremiumContext'
 
 export default function Navbar() {
   const { user, signOut } = useAuth()
+  const { isPremium } = usePremium()
 
   return (
     <nav className="navbar">
@@ -16,6 +18,9 @@ export default function Navbar() {
           <NavLink to="/learn" className="navbar__link">배우기</NavLink>
           <NavLink to="/breathe" className="navbar__link">호흡하기</NavLink>
           <NavLink to="/journal" className="navbar__link">수행일지</NavLink>
+          <NavLink to="/premium" className="navbar__link navbar__link--premium">
+            {isPremium ? '프리미엄 ✓' : '프리미엄'}
+          </NavLink>
           {user ? (
             <button className="navbar__link" onClick={signOut} title={user.email}>
               나가기

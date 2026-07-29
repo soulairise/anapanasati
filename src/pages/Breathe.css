@@ -126,6 +126,8 @@
   transition: all 0.2s var(--ease);
 }
 .sound-toggle:hover { border-color: var(--sage); color: var(--sage-deep); }
+/* 꺼진 토글은 흐리게 표시 */
+.sound-toggle.is-off { opacity: 0.4; }
 
 @media (prefers-reduced-motion: reduce) {
   .ripple span, .breath-canvas, .breath-canvas::after, .breath-orb { transition: none; animation: none; }

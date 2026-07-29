@@ -1,12 +1,16 @@
 import { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
+import { usePremium } from '../context/PremiumContext'
 import { sessionsApi, computeStats } from '../lib/store'
 import { getStage } from '../data/stages'
 import { formatDuration, formatDate } from '../lib/format'
 
+const SEVEN_DAYS = 7 * 24 * 60 * 60 * 1000
+
 export default function Journal() {
   const { user } = useAuth()
+  const { isPremium } = usePremium()
   const navigate = useNavigate()
   const [sessions, setSessions] = useState([])
   const [loading, setLoading] = useState(true)
@@ -20,6 +24,13 @@ export default function Journal() {
   }, [user])
 
   const stats = computeStats(sessions)
+
+  // 무료: 최근 7일 기록만 열람 (프리미엄은 전체)
+  const now = Date.now()
+  const visible = isPremium
+    ? sessions
+    : sessions.filter((s) => now - new Date(s.created_at).getTime() <= SEVEN_DAYS)
+  const hiddenCount = sessions.length - visible.length
 
   return (
     <div className="page">
@@ -62,7 +73,7 @@ export default function Journal() {
           </div>
         ) : (
           <div>
-            {sessions.map((s) => {
+            {visible.map((s) => {
               const stage = getStage(s.stage)
               return (
                 <div
@@ -88,6 +99,19 @@ export default function Journal() {
                 </div>
               )
             })}
+
+            {hiddenCount > 0 && (
+              <div
+                className="card"
+                style={{ padding: '1.25rem', textAlign: 'center', cursor: 'pointer', marginTop: '0.5rem' }}
+                onClick={() => navigate('/premium')}
+              >
+                🔒 지난 <b>{hiddenCount}개</b>의 기록이 더 있어요 —{' '}
+                <span style={{ color: 'var(--clay-deep)', fontWeight: 500 }}>
+                  프리미엄에서 전체 보기
+                </span>
+              </div>
+            )}
           </div>
         )}
       </div>

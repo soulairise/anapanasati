@@ -1,27 +1,34 @@
 import { useState, useEffect, useRef } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { getStage } from '../data/stages'
+import { usePremium } from '../context/PremiumContext'
 import { playBowl, getAudioContext, INHALE_FREQ, EXHALE_FREQ } from '../lib/bowl'
-import { createAmbient, AMBIENT_LABELS } from '../lib/ambient'
+import { createAmbient } from '../lib/ambient'
+import { speak, stopNarration, primeNarration, PHASE_WORDS } from '../lib/narration'
 import './Breathe.css'
 
 // 호흡 패턴: [들숨, 멈춤, 날숨, 멈춤] (초)
 const PATTERNS = [
-  { key: '4-4-6-2', label: '기본 (4-4-6-2)', phases: [4, 4, 6, 2] },
-  { key: '4-7-8-0', label: '이완 (4-7-8)', phases: [4, 7, 8, 0] },
-  { key: '4-4-4-4', label: '사각 (4-4-4-4)', phases: [4, 4, 4, 4] },
-  { key: '6-0-6-0', label: '고요 (6-6)', phases: [6, 0, 6, 0] },
+  { key: '4-4-6-2', label: '기본 (4-4-6-2)', phases: [4, 4, 6, 2], premium: false },
+  { key: '4-7-8-0', label: '이완 (4-7-8)', phases: [4, 7, 8, 0], premium: true },
+  { key: '4-4-4-4', label: '사각 (4-4-4-4)', phases: [4, 4, 4, 4], premium: true },
+  { key: '6-0-6-0', label: '고요 (6-6)', phases: [6, 0, 6, 0], premium: false },
 ]
 const PHASE_NAMES = ['들이쉬기', '멈추기', '내쉬기', '멈추기']
 // 페이즈별 색상 (들숨→멈춤→날숨→멈춤 순으로 그라데이션 순환)
 const PHASE_COLORS = ['#8a9a82', '#6fa0a8', '#c2a184', '#9a94a6']
-const DURATIONS = [3, 5, 10] // 분
+const DURATIONS = [
+  { m: 3, premium: false },
+  { m: 5, premium: false },
+  { m: 10, premium: true },
+] // 분 (10분은 프리미엄)
 
 export default function Breathe() {
   const navigate = useNavigate()
   const [params] = useSearchParams()
   const stageId = Number(params.get('stage')) || 1
   const stage = getStage(stageId)
+  const { isPremium } = usePremium()
 
   const [pattern, setPattern] = useState(PATTERNS[0])
   const [minutes, setMinutes] = useState(3)
@@ -32,8 +39,10 @@ export default function Breathe() {
   const [soundOn, setSoundOn] = useState(true)
   const [ripples, setRipples] = useState([])
   const [orbScale, setOrbScale] = useState(0.6) // 작은 원으로 시작
-  const [ambientOn, setAmbientOn] = useState(true) // 배경음(파도/모닥불)
+  const [ambientOn, setAmbientOn] = useState(true) // 배경음(파도)
   const [ambientKind, setAmbientKind] = useState(null) // 현재 재생 중인 배경음 종류
+  const [narrationOn, setNarrationOn] = useState(true) // 나레이션(inhale/exhale/hold)
+  const [preparing, setPreparing] = useState(false) // 시작 직후 잠깐의 준비 시간
 
   const tickRef = useRef(null)
   const bowlRef = useRef(null) // 현재 울리는 싱잉볼 핸들
@@ -43,6 +52,8 @@ export default function Breathe() {
   soundOnRef.current = soundOn
   const ambientOnRef = useRef(ambientOn)
   ambientOnRef.current = ambientOn
+  const narrationOnRef = useRef(narrationOn)
+  narrationOnRef.current = narrationOn
 
   // 배경음 시작 (파도/모닥불 랜덤)
   const startAmbient = () => {
@@ -76,6 +87,9 @@ export default function Breathe() {
     if (idx === 0) spawnRipple(PHASE_COLORS[0])
     else if (idx === 2) spawnRipple(PHASE_COLORS[2])
 
+    // 음성 안내 (inhale / hold / exhale) — 싱잉볼과 독립적으로 동작
+    if (narrationOnRef.current) speak(PHASE_WORDS[idx])
+
     // 이전 소리 부드럽게 정리
     if (bowlRef.current) {
       bowlRef.current.stop(0.3)
@@ -101,24 +115,35 @@ export default function Breathe() {
   useEffect(() => {
     if (!running) return
 
+    let cancelled = false
     let curr = 0
     let remain = activePhases[0].sec
-    enterPhase(activePhases[0].idx, activePhases[0].sec)
-    setPhaseRemain(remain)
 
-    tickRef.current = setInterval(() => {
-      remain -= 1
-      setElapsed((e) => e + 1)
-
-      if (remain <= 0) {
-        curr = (curr + 1) % activePhases.length
-        remain = activePhases[curr].sec
-        enterPhase(activePhases[curr].idx, activePhases[curr].sec)
-      }
+    // 바로 시작하지 않고 ~2.5초 준비 후 첫 들숨 시작 (나레이션과 함께)
+    const prepTimer = setTimeout(() => {
+      if (cancelled) return
+      setPreparing(false)
+      enterPhase(activePhases[0].idx, activePhases[0].sec)
       setPhaseRemain(remain)
-    }, 1000)
 
-    return () => clearInterval(tickRef.current)
+      tickRef.current = setInterval(() => {
+        remain -= 1
+        setElapsed((e) => e + 1)
+
+        if (remain <= 0) {
+          curr = (curr + 1) % activePhases.length
+          remain = activePhases[curr].sec
+          enterPhase(activePhases[curr].idx, activePhases[curr].sec)
+        }
+        setPhaseRemain(remain)
+      }, 1000)
+    }, 2500)
+
+    return () => {
+      cancelled = true
+      clearTimeout(prepTimer)
+      clearInterval(tickRef.current)
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [running])
 
@@ -133,15 +158,20 @@ export default function Breathe() {
     return () => {
       if (bowlRef.current) bowlRef.current.stop(0.2)
       if (ambientRef.current) ambientRef.current.stop(0.2)
+      stopNarration()
     }
   }, [])
 
   const start = () => {
     getAudioContext() // 사용자 제스처 시점에 오디오 활성화
+    if (narrationOnRef.current) primeNarration() // 나레이션 자동재생 잠금 해제
     setElapsed(0)
+    setPhaseIdx(0)
+    setPhaseRemain(0)
     setOrbScale(0.6) // 작은 원에서 시작 → 첫 들숨에 커짐
+    setPreparing(true) // 잠깐의 준비 시간
     setRunning(true)
-    if (ambientOnRef.current) startAmbient() // 배경음(파도/모닥불) 재생
+    if (ambientOnRef.current) startAmbient() // 배경음(파도) 재생
   }
 
   const stopSound = () => {
@@ -153,9 +183,20 @@ export default function Breathe() {
 
   const stop = () => {
     setRunning(false)
+    setPreparing(false)
     clearInterval(tickRef.current)
     stopSound()
     stopAmbient()
+    stopNarration()
+  }
+
+  // 음성 안내 켜기/끄기
+  const toggleNarration = () => {
+    setNarrationOn((v) => {
+      const next = !v
+      if (!next) stopNarration()
+      return next
+    })
   }
 
   // 배경음 켜기/끄기 (수행 중이면 즉시 반영)
@@ -214,41 +255,52 @@ export default function Breathe() {
 
             <p className="eyebrow">호흡 패턴</p>
             <div className="pattern-picker">
-              {PATTERNS.map((p) => (
-                <button
-                  key={p.key}
-                  className={`pattern-chip ${pattern.key === p.key ? 'active' : ''}`}
-                  onClick={() => setPattern(p)}
-                >
-                  {p.label}
-                </button>
-              ))}
+              {PATTERNS.map((p) => {
+                const locked = p.premium && !isPremium
+                return (
+                  <button
+                    key={p.key}
+                    className={`pattern-chip ${pattern.key === p.key ? 'active' : ''} ${locked ? 'is-locked' : ''}`}
+                    onClick={() => (locked ? navigate('/premium') : setPattern(p))}
+                  >
+                    {p.label}
+                    {locked ? ' 🔒' : ''}
+                  </button>
+                )
+              })}
             </div>
 
             <p className="eyebrow" style={{ marginTop: '1.5rem' }}>수행 시간</p>
             <div className="pattern-picker">
-              {DURATIONS.map((m) => (
-                <button
-                  key={m}
-                  className={`pattern-chip ${minutes === m ? 'active' : ''}`}
-                  onClick={() => setMinutes(m)}
-                >
-                  {m}분
-                </button>
-              ))}
+              {DURATIONS.map((d) => {
+                const locked = d.premium && !isPremium
+                return (
+                  <button
+                    key={d.m}
+                    className={`pattern-chip ${minutes === d.m ? 'active' : ''} ${locked ? 'is-locked' : ''}`}
+                    onClick={() => (locked ? navigate('/premium') : setMinutes(d.m))}
+                  >
+                    {d.m}분
+                    {locked ? ' 🔒' : ''}
+                  </button>
+                )
+              })}
             </div>
 
-            <div className="setting-row" style={{ marginTop: '1.5rem' }}>
-              <button className="sound-toggle" onClick={() => setSoundOn((v) => !v)}>
-                {soundOn ? '🔊 싱잉볼 켜짐' : '🔇 싱잉볼 꺼짐'}
+            <div className="setting-row" style={{ marginTop: '1.5rem', flexWrap: 'wrap' }}>
+              <button className={`sound-toggle ${soundOn ? '' : 'is-off'}`} onClick={() => setSoundOn((v) => !v)}>
+                🔔 싱잉볼 {soundOn ? '켜짐' : '꺼짐'}
               </button>
-              <button className="sound-toggle" onClick={toggleAmbient}>
-                {ambientOn ? '🌊 파도 소리 켜짐' : '🔇 파도 소리 꺼짐'}
+              <button className={`sound-toggle ${ambientOn ? '' : 'is-off'}`} onClick={toggleAmbient}>
+                🌊 파도 소리 {ambientOn ? '켜짐' : '꺼짐'}
+              </button>
+              <button className={`sound-toggle ${narrationOn ? '' : 'is-off'}`} onClick={toggleNarration}>
+                🎙️ 나레이션 {narrationOn ? '켜짐' : '꺼짐'}
               </button>
             </div>
-            {ambientOn && (
+            {narrationOn && (
               <p className="faint text-center" style={{ fontSize: '0.82rem', marginTop: '0.6rem' }}>
-                잔잔한 파도 소리가 배경으로 재생됩니다
+                들숨·멈춤·날숨에 “inhale · hold · exhale” 음성이 안내됩니다
               </p>
             )}
 
@@ -277,18 +329,21 @@ export default function Breathe() {
                     transform: `scale(${orbScale})`,
                   }}
                 >
-                  <span>{phaseRemain}</span>
+                  <span>{preparing ? '' : phaseRemain}</span>
                 </div>
               </div>
-              <div className="breath-phase-label">{PHASE_NAMES[phaseIdx]}</div>
+              <div className="breath-phase-label">
+                {preparing ? '잠시 후 시작합니다' : PHASE_NAMES[phaseIdx]}
+              </div>
               <div className="breath-timer">
                 {Math.floor(elapsed / 60)}분 {elapsed % 60}초 / {minutes}분
               </div>
             </div>
 
-            <div className="breathe-controls">
+            {/* 소리 토글 (싱잉볼 · 파도 · 음성 안내) */}
+            <div className="breathe-controls" style={{ marginBottom: '0.75rem' }}>
               <button
-                className="sound-toggle"
+                className={`sound-toggle ${soundOn ? '' : 'is-off'}`}
                 title="싱잉볼 소리"
                 onClick={() => {
                   setSoundOn((v) => {
@@ -297,11 +352,17 @@ export default function Breathe() {
                   })
                 }}
               >
-                {soundOn ? '🔊 싱잉볼' : '🔇 싱잉볼'}
+                🔔 싱잉볼
               </button>
-              <button className="sound-toggle" title="배경음 (파도)" onClick={toggleAmbient}>
-                {ambientOn ? (ambientKind ? AMBIENT_LABELS[ambientKind] : '🌊 파도') : '🔇 파도'}
+              <button className={`sound-toggle ${ambientOn ? '' : 'is-off'}`} title="파도 소리" onClick={toggleAmbient}>
+                🌊 파도
               </button>
+              <button className={`sound-toggle ${narrationOn ? '' : 'is-off'}`} title="나레이션" onClick={toggleNarration}>
+                🎙️ 나레이션
+              </button>
+            </div>
+            {/* 동작 버튼 */}
+            <div className="breathe-controls">
               <button className="btn btn--ghost" onClick={stop}>일시정지</button>
               <button className="btn btn--primary" onClick={finish}>마치고 기록하기</button>
             </div>

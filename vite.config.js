@@ -7,4 +7,6 @@ import react from '@vitejs/plugin-react'
 export default defineConfig({
   plugins: [react()],
   base: '/anapanasati/',
+  // 음성 안내 오디오(m4a)를 에셋으로 번들
+  assetsInclude: ['**/*.m4a'],
 })

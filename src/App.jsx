@@ -9,6 +9,7 @@ import SessionComplete from './pages/SessionComplete'
 import Journal from './pages/Journal'
 import JournalDetail from './pages/JournalDetail'
 import Login from './pages/Login'
+import Premium from './pages/Premium'
 import './App.css'
 
 // 로그인 필요한 라우트 보호
@@ -31,6 +32,7 @@ export default function App() {
           <Route path="/breathe" element={<Breathe />} />
           <Route path="/complete" element={<SessionComplete />} />
           <Route path="/login" element={<Login />} />
+          <Route path="/premium" element={<Premium />} />
           <Route
             path="/journal"
             element={

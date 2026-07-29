@@ -39,6 +39,19 @@ export const auth = {
     return toUser(data.user)
   },
 
+  // 소셜 로그인 (google / kakao / apple) — 제공자 페이지로 리다이렉트됨
+  async signInWithProvider(provider) {
+    const { data, error } = await supabase.auth.signInWithOAuth({
+      provider,
+      options: {
+        // 로그인 후 앱으로 복귀 (GitHub Pages base 경로 포함)
+        redirectTo: window.location.origin + window.location.pathname,
+      },
+    })
+    if (error) throw error
+    return data
+  },
+
   async signOut() {
     await supabase.auth.signOut()
   },
