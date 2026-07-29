@@ -10,6 +10,8 @@ import Journal from './pages/Journal'
 import JournalDetail from './pages/JournalDetail'
 import Login from './pages/Login'
 import Premium from './pages/Premium'
+import PaySuccess from './pages/PaySuccess'
+import PayFail from './pages/PayFail'
 import './App.css'
 
 // 로그인 필요한 라우트 보호
@@ -33,6 +35,8 @@ export default function App() {
           <Route path="/complete" element={<SessionComplete />} />
           <Route path="/login" element={<Login />} />
           <Route path="/premium" element={<Premium />} />
+          <Route path="/pay/success" element={<PaySuccess />} />
+          <Route path="/pay/fail" element={<PayFail />} />
           <Route
             path="/journal"
             element={

@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { usePremium } from '../context/PremiumContext'
+import { requestSubscription, TOSS_READY } from '../lib/payments'
 import './Premium.css'
 
 const BENEFITS = [
@@ -41,15 +42,30 @@ export default function Premium() {
   const [selected, setSelected] = useState('yearly')
   const [done, setDone] = useState(false)
 
-  // 실제 결제(토스페이먼츠)는 출시 시 이 자리에서 결제창을 띄우게 된다.
-  // 지금은 데모로 프리미엄을 즉시 활성화한다.
-  const handleSubscribe = () => {
+  // 토스 키가 설정돼 있으면 실제 결제창을 띄우고, 아니면 데모로 즉시 활성화한다.
+  const handleSubscribe = async () => {
     if (!user) {
       navigate('/login', { state: { redirectTo: '/premium' } })
       return
     }
-    setPremium(true)
-    setDone(true)
+    const plan = PLANS.find((p) => p.key === selected)
+    if (TOSS_READY) {
+      try {
+        await requestSubscription({
+          planKey: plan.key,
+          orderName: `숨결의 길 프리미엄 (${plan.name})`,
+          amount: plan.price,
+          customerEmail: user.email,
+          customerName: user.display_name,
+        })
+      } catch {
+        /* 사용자가 결제창을 닫음 등 — 별도 처리 없음 */
+      }
+    } else {
+      // 데모(테스트 키/미설정): 즉시 프리미엄 부여
+      setPremium(true)
+      setDone(true)
+    }
   }
 
   if (isPremium) {

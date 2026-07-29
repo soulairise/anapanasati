@@ -79,10 +79,18 @@ src/
    - Redirect URL(Supabase가 주는 콜백)과, 앱 복귀 URL(`https://soulairise.github.io/anapanasati/`)을 각 콘솔의 허용 목록에 등록
    - ⚠️ HashRouter + OAuth 토큰 프래그먼트 충돌 가능 → 콜백 후 세션 감지 동작 확인 필요(안 되면 detectSessionInUrl 처리 점검).
 
-## 5. 다음 로드맵
-- 수익화 3단계: **토스페이먼츠** 실결제 (사업자등록증 보유 ✅ → 가맹 가입, 클라이언트/시크릿 키, Supabase Edge Function webhook → is_premium 갱신). 상세: [docs/MONETIZATION.md](./docs/MONETIZATION.md)
+## 5. 결제(토스) & 소셜로그인 현황
+- **구글 소셜 로그인: 실제 활성화 완료 ✅** (Supabase 구글 provider ON, 코드 `ENABLED_PROVIDERS=['google']`, accounts.google.com 리다이렉트 확인·배포됨). 카카오/애플/네이버는 미설정 → 클릭 시 "곧 지원" 안내.
+- **토스페이먼츠 결제: 코드 전부 작성 완료, 계정/배포만 남음.**
+  - 프론트: `src/lib/payments.js`, `Premium.jsx`(TOSS_READY 분기), `PaySuccess/PayFail.jsx`, 라우트 `/pay/success` `/pay/fail`
+  - 백엔드: `supabase/functions/confirm-payment/index.ts`(승인+is_premium), `supabase/schema-profiles.sql`(profiles)
+  - **남은 일 = [docs/TOSS_SETUP.md](./docs/TOSS_SETUP.md) 5단계** (토스 키 발급 → .env `VITE_TOSS_CLIENT_KEY` → profiles SQL 실행 → Edge Function 배포+`TOSS_SECRET_KEY` → 테스트)
+  - 키 없으면 `/premium` "구독 시작"은 데모(즉시 프리미엄)로 동작. 현재는 1회성 결제, 자동갱신(빌링키)은 미구현.
+
+## 다음 로드맵
+- 카카오 소셜 로그인 추가(카카오 개발자센터 → Supabase provider → `ENABLED_PROVIDERS`에 'kakao')
 - Capacitor로 iOS/Android 앱 패키징
-- 가이드 음성 명상(프리미엄 콘텐츠) 확장, AI 수행 코칭(Claude API, sessions.ai_feedback 컬럼 이미 예약)
+- 가이드 음성 명상(프리미엄) 확장, AI 수행 코칭(Claude API, sessions.ai_feedback 컬럼 예약됨)
 
 ## 6. 실행 / 빌드 / 배포
 ```bash
