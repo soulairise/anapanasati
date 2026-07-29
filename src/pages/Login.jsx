@@ -13,7 +13,7 @@ const SOCIALS = [
 
 // Supabase 대시보드에서 제공자를 활성화한 뒤 여기에 추가하면 실제 OAuth로 켜진다.
 // 예: new Set(['google', 'kakao']) — 네이버는 Supabase 미지원(커스텀 필요).
-const ENABLED_PROVIDERS = new Set([])
+const ENABLED_PROVIDERS = new Set(['google'])
 
 export default function Login() {
   const { signIn, signUp, signInWithProvider } = useAuth()

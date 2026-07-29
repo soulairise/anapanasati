@@ -11,4 +11,12 @@ if (!url || !key) {
   )
 }
 
-export const supabase = createClient(url, key)
+export const supabase = createClient(url, key, {
+  auth: {
+    // 소셜 로그인 복귀 시 URL의 code를 자동 감지·세션 교환 (HashRouter 충돌 방지)
+    flowType: 'pkce',
+    detectSessionInUrl: true,
+    persistSession: true,
+    autoRefreshToken: true,
+  },
+})
