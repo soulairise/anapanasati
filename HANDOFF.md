@@ -56,24 +56,22 @@ src/
 - ✅ 모바일 반응형(네비 한 줄 정렬 등)
 - ✅ 배포됨: **https://soulairise.github.io/anapanasati/**
 
-## 4. 진행 중 (미완성) — ★소셜 로그인★  ← 여기서 이어가기
-목표: 로그인 화면에 **구글·카카오·네이버·애플** 가입 버튼 추가.
-- Supabase 기본 지원: 구글 ✅, 카카오 ✅, 애플 ✅ / **네이버는 미지원**(커스텀 OIDC 필요 → 당분간 "준비 중" 처리).
+## 4. 소셜 로그인 — UI 완료 ✅, 제공자 설정만 남음
+로그인 화면에 **구글·카카오·네이버·애플** 버튼 구현 완료.
+- Supabase 기본 지원: 구글 ✅, 카카오 ✅, 애플 ✅ / **네이버는 미지원**(커스텀 OIDC 필요).
 
-**이미 한 것:**
-- `src/lib/store.js`의 `auth`에 `signInWithProvider(provider)` 추가 완료 (supabase.auth.signInWithOAuth 사용, redirectTo = origin+pathname).
+**완료된 것:**
+- `src/lib/store.js` → `auth.signInWithProvider(provider)` (supabase.auth.signInWithOAuth, redirectTo=origin+pathname)
+- `src/context/AuthContext.jsx` → `signInWithProvider` 노출
+- `src/pages/Login.jsx` → 소셜 버튼 4개 + `handleSocial` + `ENABLED_PROVIDERS` 게이트
+- `src/components/SocialIcons.jsx` (인라인 SVG 로고), `src/pages/Login.css` (브랜드 색)
+- **현재 동작:** `ENABLED_PROVIDERS`가 비어 있어, 클릭하면 "곧 지원 예정" 안내만 표시(에러 페이지 방지).
 
-**남은 것 (이어서 할 일):**
-1. `src/context/AuthContext.jsx`: `signInWithProvider`를 context value로 노출
-   ```js
-   const signInWithProvider = (provider) => auth.signInWithProvider(provider)
-   // value에 signInWithProvider 추가
-   ```
-2. `src/pages/Login.jsx`: 이메일 폼 아래에 "또는 간편 시작" 구분선 + 소셜 버튼 4개(구글/카카오/네이버/애플).
-   - 핸들러: `provider==='naver'`면 안내 메시지("네이버는 준비 중"), 그 외엔 `signInWithProvider(provider)` 호출(리다이렉트). try/catch로 "제공자 미설정" 안내.
-   - 브랜드 색: 구글=흰 배경+테두리, 카카오=#FEE500, 네이버=#03C75A, 애플=검정. 로고는 inline SVG 권장.
-3. 소셜 버튼 CSS (예: `src/pages/Login.css` 새로 만들어 import).
-4. **Supabase 대시보드에서 제공자 활성화**(실제 작동 조건):
+**실제 로그인으로 켜려면 (남은 일):**
+1. **Supabase 대시보드에서 제공자 활성화** + 키 입력 (아래 참고)
+2. `src/pages/Login.jsx`의 `const ENABLED_PROVIDERS = new Set([])` 에 켠 제공자 추가 (예: `new Set(['google','kakao'])`)
+
+**Supabase 제공자 설정 방법:**
    - Authentication → Sign In / Providers → 각 제공자 ON + 키 입력
    - Google: Google Cloud Console에서 OAuth 클라이언트 ID/시크릿 발급
    - Kakao: 카카오 개발자센터 앱 생성 → REST API 키

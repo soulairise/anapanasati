@@ -20,13 +20,16 @@ export function AuthProvider({ children }) {
 
   const signUp = (email, password) => auth.signUp(email, password)
   const signIn = (email, password) => auth.signIn(email, password)
+  const signInWithProvider = (provider) => auth.signInWithProvider(provider)
   const signOut = async () => {
     await auth.signOut()
     setUser(null)
   }
 
   return (
-    <AuthContext.Provider value={{ user, loading, signUp, signIn, signOut }}>
+    <AuthContext.Provider
+      value={{ user, loading, signUp, signIn, signInWithProvider, signOut }}
+    >
       {children}
     </AuthContext.Provider>
   )

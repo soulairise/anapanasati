@@ -1,9 +1,22 @@
 import { useState } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
+import { GoogleIcon, KakaoIcon, NaverIcon, AppleIcon } from '../components/SocialIcons'
+import './Login.css'
+
+const SOCIALS = [
+  { key: 'google', label: 'Google로 계속하기', Icon: GoogleIcon, cls: 'social--google' },
+  { key: 'kakao', label: '카카오로 계속하기', Icon: KakaoIcon, cls: 'social--kakao' },
+  { key: 'naver', label: '네이버로 계속하기', Icon: NaverIcon, cls: 'social--naver' },
+  { key: 'apple', label: 'Apple로 계속하기', Icon: AppleIcon, cls: 'social--apple' },
+]
+
+// Supabase 대시보드에서 제공자를 활성화한 뒤 여기에 추가하면 실제 OAuth로 켜진다.
+// 예: new Set(['google', 'kakao']) — 네이버는 Supabase 미지원(커스텀 필요).
+const ENABLED_PROVIDERS = new Set([])
 
 export default function Login() {
-  const { signIn, signUp } = useAuth()
+  const { signIn, signUp, signInWithProvider } = useAuth()
   const navigate = useNavigate()
   const { state } = useLocation()
 
@@ -20,6 +33,21 @@ export default function Login() {
       navigate('/complete', { state: state.session })
     } else {
       navigate('/journal')
+    }
+  }
+
+  // 소셜 로그인. 활성화된 제공자만 실제 OAuth로 연결, 나머지는 안내.
+  const handleSocial = async (provider) => {
+    setError('')
+    setInfo('')
+    if (!ENABLED_PROVIDERS.has(provider)) {
+      setInfo('소셜 로그인은 곧 지원될 예정이에요. 지금은 이메일로 시작해 주세요. 🙏')
+      return
+    }
+    try {
+      await signInWithProvider(provider) // 제공자 페이지로 리다이렉트
+    } catch (err) {
+      setError('로그인 중 문제가 생겼어요. 이메일로 시작하거나 잠시 후 다시 시도해 주세요.')
     }
   }
 
@@ -105,6 +133,22 @@ export default function Login() {
               {busy ? '처리 중…' : mode === 'signup' ? '가입하고 시작하기' : '로그인'}
             </button>
           </form>
+
+          <div className="social-divider"><span>또는 간편 시작</span></div>
+          <div className="social-list">
+            {SOCIALS.map(({ key, label, Icon, cls }) => (
+              <button
+                key={key}
+                type="button"
+                className={`social-btn ${cls}`}
+                onClick={() => handleSocial(key)}
+                disabled={busy}
+              >
+                <span className="social-btn__icon"><Icon /></span>
+                <span>{label}</span>
+              </button>
+            ))}
+          </div>
 
           <hr className="divider" />
           <p className="text-center muted" style={{ fontSize: '0.9rem' }}>

@@ -1,0 +1,49 @@
+/* ============================================================
+   로그인 — 소셜 로그인 버튼
+   ============================================================ */
+
+.social-divider {
+  display: flex;
+  align-items: center;
+  text-align: center;
+  color: var(--ink-faint);
+  font-size: 0.82rem;
+  margin: var(--sp-3) 0 var(--sp-2);
+}
+.social-divider::before,
+.social-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--line);
+}
+.social-divider span { padding: 0 0.8rem; }
+
+.social-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.social-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  width: 100%;
+  padding: 0.8rem 1rem;
+  border-radius: 12px;
+  font-size: 0.95rem;
+  font-weight: 500;
+  border: 1px solid transparent;
+  transition: filter 0.15s var(--ease), transform 0.15s var(--ease);
+}
+.social-btn:hover { filter: brightness(0.97); transform: translateY(-1px); }
+.social-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+.social-btn__icon { display: inline-flex; align-items: center; }
+
+/* 브랜드별 색 */
+.social--google { background: #fff; color: #1f1f1f; border-color: var(--line); }
+.social--kakao { background: #fee500; color: #191600; }
+.social--naver { background: #03c75a; color: #fff; }
+.social--apple { background: #000; color: #fff; }
