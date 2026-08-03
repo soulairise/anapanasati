@@ -17,6 +17,7 @@ export default function Navbar() {
         <div className="navbar__links">
           <NavLink to="/learn" className="navbar__link">배우기</NavLink>
           <NavLink to="/breathe" className="navbar__link">호흡하기</NavLink>
+          <NavLink to="/yoga" className="navbar__link">요가 호흡</NavLink>
           <NavLink to="/journal" className="navbar__link">수행일지</NavLink>
           <NavLink to="/premium" className="navbar__link navbar__link--premium">
             {isPremium ? '프리미엄 ✓' : '프리미엄'}

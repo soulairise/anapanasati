@@ -14,13 +14,16 @@ export function AuthProvider({ children }) {
       setLoading(false)
     })
     // 로그인/로그아웃 상태 변화 실시간 반영
-    const unsubscribe = auth.onChange((u) => setUser(u))
+    const unsubscribe = auth.onChange((u, event) => {
+      setUser(u)
+      if (event === 'SIGNED_IN') auth.finishOAuthRedirect()
+    })
     return unsubscribe
   }, [])
 
   const signUp = (email, password) => auth.signUp(email, password)
   const signIn = (email, password) => auth.signIn(email, password)
-  const signInWithProvider = (provider) => auth.signInWithProvider(provider)
+  const signInWithProvider = (provider, returnTo) => auth.signInWithProvider(provider, returnTo)
   const signOut = async () => {
     await auth.signOut()
     setUser(null)

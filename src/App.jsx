@@ -12,6 +12,10 @@ import Login from './pages/Login'
 import Premium from './pages/Premium'
 import PaySuccess from './pages/PaySuccess'
 import PayFail from './pages/PayFail'
+import YogaBreathing from './pages/YogaBreathing'
+import YogaAshtanga from './pages/YogaAshtanga'
+import YogaTechnique from './pages/YogaTechnique'
+import YogaPractice from './pages/YogaPractice'
 import './App.css'
 
 // 로그인 필요한 라우트 보호
@@ -32,6 +36,10 @@ export default function App() {
           <Route path="/learn" element={<Learn />} />
           <Route path="/learn/:id" element={<StageDetail />} />
           <Route path="/breathe" element={<Breathe />} />
+          <Route path="/yoga" element={<YogaBreathing />} />
+          <Route path="/yoga/ashtanga" element={<YogaAshtanga />} />
+          <Route path="/yoga/:id" element={<YogaTechnique />} />
+          <Route path="/yoga/:id/practice" element={<YogaPractice />} />
           <Route path="/complete" element={<SessionComplete />} />
           <Route path="/login" element={<Login />} />
           <Route path="/premium" element={<Premium />} />

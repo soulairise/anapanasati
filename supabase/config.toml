@@ -1,0 +1,12 @@
+[functions.confirm-payment]
+verify_jwt = true
+
+# Supabase Auth 서버가 네이버 access token으로 호출하므로
+# Supabase JWT 검증을 끈다. 함수 내부에서 Bearer 토큰과 네이버 응답을 검증한다.
+[functions.naver-userinfo]
+verify_jwt = false
+
+# Supabase Auth 서버가 카카오 access token으로 호출하므로
+# Supabase JWT 검증을 끈다. 함수 내부에서 Bearer 토큰과 카카오 응답을 검증한다.
+[functions.kakao-userinfo]
+verify_jwt = false

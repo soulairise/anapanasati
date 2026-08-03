@@ -1,15 +1,29 @@
 # 프로젝트 인계 노트 (HANDOFF) — 숨결의 길 (Ānāpānasati Path)
 
 > 이 문서 하나로 다른 AI(ChatGPT 등)나 개발자가 작업을 이어받을 수 있도록 정리한 자체 완결형 인계서입니다.
-> 최종 업데이트: 2026-07 기준. 작성자: 김민영(소울매트/소울라이즈) + Claude.
+> 최종 업데이트: 2026-08-03. 작성자: 김민영(소울매트/소울라이즈) + Claude + Codex.
 
 ---
 
-## 0. 이 문서 사용법 (ChatGPT에게)
-아래 내용을 통째로 붙여넣고 이렇게 요청하면 됩니다:
-> "나는 '숨결의 길'이라는 React+Vite 명상 웹앱을 만들고 있어. 아래는 프로젝트 인계 노트야. 현재 상태를 파악하고, '4. 진행 중(미완성)' 항목부터 이어서 도와줘."
+## 0. 이 문서 사용법 (Claude Code / Codex)
+프로젝트 루트는 `/Users/soulmat/Desktop/my-first-web/anapanasati`입니다. 먼저 이 문서와 `docs/SOCIAL_LOGIN_SETUP.md`, `docs/TOSS_SETUP.md`, `git status`를 확인하고 이어서 작업하세요.
 
-⚠️ ChatGPT는 내 로컬 파일에 직접 접근할 수 없으니, 코드 수정은 (a) 내가 파일 내용을 붙여넣어 주거나 (b) GitHub 저장소를 참고하게 하는 방식으로 진행하세요.
+현재 작업 트리에는 아직 커밋되지 않은 소셜 로그인·토스 결제 변경이 있습니다. 사용자 변경을 보존하고 `git reset --hard`나 파일 되돌리기를 하지 마세요. GitHub Pages 배포는 완료됐지만 소스 브랜치 커밋·푸시는 별도 확인이 필요합니다.
+
+### 0-1. Codex·Claude 병렬 작업 규칙
+
+- 이 `HANDOFF.md`가 프로젝트 전체의 단일 기준 문서다.
+- Codex 작업 로그: `docs/HANDOFF_CODEX.md`
+- Claude 작업 로그: `docs/HANDOFF_CLAUDE.md`
+- **Codex 담당:** 토스 결제창, 결제 승인·프리미엄 상태, 인증·환경설정, 기존 구성 업데이트, 빌드·최종 배포 검증.
+- **Claude 담당:** 기존 아나빠나사띠 기능을 삭제하거나 대체하지 않고, 별도의 위빠사나 호흡·관찰 실습 기능과 콘텐츠 추가.
+- 작업 시작 전 반드시 `git status`와 두 작업 로그의 최신 항목을 읽는다.
+- 상대 작업과 겹치는 파일을 발견하면 덮어쓰지 말고 현재 변경을 먼저 읽어서 병합한다.
+- 공용 충돌 가능 파일은 `src/App.jsx`, `src/components/Navbar.jsx`, 공통 CSS, 라우팅·홈 화면 파일이다. 수정 전 자기 작업 로그에 목적과 변경 예정 파일을 남긴다.
+- 결제·인증 파일은 Claude가 수정하지 않고, 위빠사나 전용 콘텐츠 파일은 Codex가 임의로 수정하지 않는다.
+- 완료할 때 자기 작업 로그와 이 문서의 완료 현황·다음 작업을 함께 갱신한다.
+- 배포는 기본적으로 Codex가 담당한다. Claude는 기능을 `READY_FOR_DEPLOY`로 기록하고, 사용자가 Claude에게 직접 배포를 요청한 경우에만 빌드·배포한다.
+- 배포 전에는 상대 작업 로그에 `IN_PROGRESS`가 있는지 확인하고, 미완성 코드가 포함되지 않는지 검토한다.
 
 ---
 
@@ -56,39 +70,89 @@ src/
 - ✅ 모바일 반응형(네비 한 줄 정렬 등)
 - ✅ 배포됨: **https://soulairise.github.io/anapanasati/**
 
-## 4. 소셜 로그인 — UI 완료 ✅, 제공자 설정만 남음
-로그인 화면에 **구글·카카오·네이버·애플** 버튼 구현 완료.
-- Supabase 기본 지원: 구글 ✅, 카카오 ✅, 애플 ✅ / **네이버는 미지원**(커스텀 OIDC 필요).
+## 4. 소셜 로그인 — 구글·카카오·네이버 연결 완료 ✅
+로그인 화면에 **구글·카카오·네이버** 버튼 구현 완료. Apple 로그인은 유료 Apple Developer Program이 필요해 버튼을 제거했다.
+- Supabase 기본 Provider: 구글 ✅
+- 카카오·네이버: Supabase Custom OAuth2 Provider와 사용자정보 변환 Edge Function으로 연결 완료.
 
 **완료된 것:**
 - `src/lib/store.js` → `auth.signInWithProvider(provider)` (supabase.auth.signInWithOAuth, redirectTo=origin+pathname)
 - `src/context/AuthContext.jsx` → `signInWithProvider` 노출
-- `src/pages/Login.jsx` → 소셜 버튼 4개 + `handleSocial` + `ENABLED_PROVIDERS` 게이트
+- `src/pages/Login.jsx` → 소셜 버튼 4개 + `handleSocial`
+- `src/lib/authProviders.js` → `VITE_AUTH_PROVIDERS` 활성화 목록과 카카오·네이버 Custom OAuth 매핑
 - `src/components/SocialIcons.jsx` (인라인 SVG 로고), `src/pages/Login.css` (브랜드 색)
-- **현재 동작:** `ENABLED_PROVIDERS`가 비어 있어, 클릭하면 "곧 지원 예정" 안내만 표시(에러 페이지 방지).
+- OAuth 로그인 전 이동 목적지를 보관하고 로그인 후 수행일지/프리미엄 화면으로 복귀하도록 개선.
+- `supabase/functions/naver-userinfo/index.ts` 생성 및 Supabase 배포 완료(Verify JWT OFF).
+- `supabase/functions/kakao-userinfo/index.ts` 생성 및 Supabase 배포 완료(Verify JWT OFF).
 
-**실제 로그인으로 켜려면 (남은 일):**
-1. **Supabase 대시보드에서 제공자 활성화** + 키 입력 (아래 참고)
-2. `src/pages/Login.jsx`의 `const ENABLED_PROVIDERS = new Set([])` 에 켠 제공자 추가 (예: `new Set(['google','kakao'])`)
+**현재 활성 제공자:**
+1. Google: Supabase 기본 Provider
+2. Kakao: 전용 카카오 앱 + Supabase Custom OAuth2 Provider(`custom:kakao`)
+3. Naver: 전용 네이버 앱 + Supabase Custom OAuth2 Provider(`custom:naver`)
+
+프론트 활성 목록은 `.env.local`의 `VITE_AUTH_PROVIDERS=google,kakao,naver`로 관리한다.
 
 **Supabase 제공자 설정 방법:**
    - Authentication → Sign In / Providers → 각 제공자 ON + 키 입력
    - Google: Google Cloud Console에서 OAuth 클라이언트 ID/시크릿 발급
-   - Kakao: 카카오 개발자센터 앱 생성 → REST API 키
-   - Apple: Apple Developer($99/년) → Service ID + Key
+   - Kakao: 카카오 개발자센터 앱 생성 → REST API 키 + Client Secret
+   - Naver: 네이버 개발자센터 앱 생성 → Supabase Custom OAuth2 Provider 설정
+   - Apple: 미사용(유료 Apple Developer Program이 필요해 로그인 버튼 제거)
    - Redirect URL(Supabase가 주는 콜백)과, 앱 복귀 URL(`https://soulairise.github.io/anapanasati/`)을 각 콘솔의 허용 목록에 등록
    - ⚠️ HashRouter + OAuth 토큰 프래그먼트 충돌 가능 → 콜백 후 세션 감지 동작 확인 필요(안 되면 detectSessionInUrl 처리 점검).
 
 ## 5. 결제(토스) & 소셜로그인 현황
-- **구글 소셜 로그인: 실제 활성화 완료 ✅** (Supabase 구글 provider ON, 코드 `ENABLED_PROVIDERS=['google']`, accounts.google.com 리다이렉트 확인·배포됨). 카카오/애플/네이버는 미설정 → 클릭 시 "곧 지원" 안내.
-- **토스페이먼츠 결제: 코드 전부 작성 완료, 계정/배포만 남음.**
+- **구글 소셜 로그인: 실제 활성화 완료 ✅** (Supabase 구글 provider ON, 리다이렉트 확인·배포됨).
+- **카카오: 전용 앱, `kakao-userinfo` 함수, Supabase `custom:kakao` Provider 활성화 완료 ✅**
+- **네이버: 전용 앱, `naver-userinfo` 함수, Supabase `custom:naver` Provider 활성화 완료 ✅**
+- 상세 절차: `docs/SOCIAL_LOGIN_SETUP.md`
+- **토스페이먼츠 결제: 테스트 환경 연결·서버 배포 완료 ✅, 결제 테스트만 남음.**
   - 프론트: `src/lib/payments.js`, `Premium.jsx`(TOSS_READY 분기), `PaySuccess/PayFail.jsx`, 라우트 `/pay/success` `/pay/fail`
   - 백엔드: `supabase/functions/confirm-payment/index.ts`(승인+is_premium), `supabase/schema-profiles.sql`(profiles)
-  - **남은 일 = [docs/TOSS_SETUP.md](./docs/TOSS_SETUP.md) 5단계** (토스 키 발급 → .env `VITE_TOSS_CLIENT_KEY` → profiles SQL 실행 → Edge Function 배포+`TOSS_SECRET_KEY` → 테스트)
-  - 키 없으면 `/premium` "구독 시작"은 데모(즉시 프리미엄)로 동작. 현재는 1회성 결제, 자동갱신(빌링키)은 미구현.
+  - 테스트 클라이언트 키 `.env` 연결, `profiles` SQL 실행, `TOSS_SECRET_KEY` 등록, `confirm-payment` Edge Function 배포 완료(2026-07-29).
+  - **남은 일:** 로그인 → `/premium` → 토스 테스트 결제 → 성공 화면 및 `profiles.is_premium=true` 확인.
+  - 현재는 1회성 결제이며 자동갱신(빌링키)은 미구현. 실제 매출은 토스 전자결제 계약·심사 후 라이브 키로 교체해야 함.
+
+## 5-1. 2026-08-03 최종 배포·OAuth 검증 기록
+
+- `npm run build` 성공: Vite 108개 모듈 빌드 완료.
+- `npm run deploy` 성공: GitHub Pages `Published` 확인.
+- 배포 주소: https://soulairise.github.io/anapanasati/
+- 로그인 주소: https://soulairise.github.io/anapanasati/#/login
+- GitHub Pages 빌드 상태: `built`, 최종 배포 커밋 `bb66f86`.
+- 배포에서 확인한 파일: `assets/index-Cv_3HVFx.js`, `assets/index-D4Sb7Jus.css`.
+- 최종 로그인 버튼 수(Google/Kakao/Naver/Apple): `1/1/1/0`. Apple 버튼 제거가 실제 배포에 반영됨.
+- 이전 로그인 화면이 남는 브라우저 캐시 문제를 줄이기 위해 `index.html`에 no-cache 메타 설정을 추가함.
+- Google: 버튼 클릭 후 Google 계정 선택 화면까지 정상 진입. 요청 scope는 `email profile`.
+- Kakao: 버튼 클릭 후 `숨결의 길` 닉네임 동의 화면까지 정상 진입. `KOE205` 해결 완료, `custom:kakao`와 `profile_nickname`만 사용.
+- Naver: 버튼 클릭 후 `숨결의 길` 개인정보 동의 화면까지 정상 진입. 이용자 식별자·이메일 주소·별명 항목 확인.
+- 개인정보 제공 동의 및 계정 선택은 자동으로 진행하지 않았다. 사용자가 각 동의 화면에서 직접 승인한 뒤 앱 복귀, Supabase 사용자 생성, `/journal` 이동을 최종 확인해야 한다.
+- 네이버 앱은 현재 `개발 중` 상태다. 소유자 테스트 후 일반 사용자 공개를 위해 네이버 로그인 검수가 필요하다.
+
+관리 링크:
+
+- Supabase Auth Providers: https://supabase.com/dashboard/project/ianhttigznynatbnfrkw/auth/providers
+- Supabase Users: https://supabase.com/dashboard/project/ianhttigznynatbnfrkw/auth/users
+- Supabase Edge Functions: https://supabase.com/dashboard/project/ianhttigznynatbnfrkw/functions
+- Kakao 앱: https://developers.kakao.com/console/app/1531835
+- Naver 앱: https://developers.naver.com/apps/#/myapps/xdia0IPHq0iNwR39VvuS/overview
+- Naver 검수: https://developers.naver.com/apps/#/myapps/xdia0IPHq0iNwR39VvuS/verify
+
+## 5-2. Claude 작업 — 요가 호흡법(프라나야마) 추가 (2026-08-03)
+> 상세 로그: `docs/HANDOFF_CLAUDE.md` / 기획: `docs/PRANAYAMA_PLAN.md`
+- 아나빠나사띠는 **보존**, 별도 **요가 호흡법** 섹션 신설. 위빠사나는 다음 차례.
+- ✅ 데이터: `src/data/ashtanga.js`(아쉬탕가 8단계), `src/data/pranayama.js`(개념+5단계+9기법+타이머설정)
+- ✅ 페이지: `src/pages/YogaBreathing.jsx`(허브 `/yoga`), `YogaAshtanga.jsx`(`/yoga/ashtanga`), `YogaTechnique.jsx`(`/yoga/:id`), `YogaPractice.jsx`(**실제 타이머 완료** — /yoga/:id/practice), `Yoga.css`
+- ✅ 타이머 3모드: paced(복식·박스·웃자이 등) / alternate(나디쇼다나 콧구멍 교대) / pulsed(카팔라바티·바스트리카, 금기 동의 모달). dev 실동작 검증 완료.
+- ✅ 장르 차별화·연출(2026-08-04): `.yoga-theme`(따뜻한 테라코타, 세이지와 대비) + 연꽃 만다라 배경 + 오브 색 그라데이션 전환 + 숨결 사운드(`src/lib/yogaSound.js`, bowl.js AudioContext 공유·미변경). 요가 전용 파일만 수정.
+- ⚠️ **공용 파일 병합(추가만)**: `src/App.jsx`(요가 라우트 4개 추가), `src/components/Navbar.jsx`("요가 호흡" 링크 추가). **Codex는 이 두 파일 수정 시 덮어쓰지 말고 병합**할 것. 결제·인증 파일은 Claude가 미변경.
+- 상태: **READY_FOR_DEPLOY** (미배포). 배포는 Codex 담당 또는 사용자가 Claude에게 요청 시.
 
 ## 다음 로드맵
-- 카카오 소셜 로그인 추가(카카오 개발자센터 → Supabase provider → `ENABLED_PROVIDERS`에 'kakao')
+- 요가 호흡법: (선택) 실습 완료를 수행일지에 기록 / 사운드·나레이션 추가 (Claude)
+- 위빠사나 실습 추가 (Claude)
+- 사용자가 구글·카카오·네이버 동의 완료 → Supabase Users 생성 및 `/journal` 복귀 확인
+- 네이버 공개 서비스 검수 신청
 - Capacitor로 iOS/Android 앱 패키징
 - 가이드 음성 명상(프리미엄) 확장, AI 수행 코칭(Claude API, sessions.ai_feedback 컬럼 예약됨)
 

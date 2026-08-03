@@ -1,19 +1,15 @@
 import { useState } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
-import { GoogleIcon, KakaoIcon, NaverIcon, AppleIcon } from '../components/SocialIcons'
+import { GoogleIcon, KakaoIcon, NaverIcon } from '../components/SocialIcons'
+import { getAuthProviderId, isAuthProviderEnabled } from '../lib/authProviders'
 import './Login.css'
 
 const SOCIALS = [
   { key: 'google', label: 'Google로 계속하기', Icon: GoogleIcon, cls: 'social--google' },
   { key: 'kakao', label: '카카오로 계속하기', Icon: KakaoIcon, cls: 'social--kakao' },
   { key: 'naver', label: '네이버로 계속하기', Icon: NaverIcon, cls: 'social--naver' },
-  { key: 'apple', label: 'Apple로 계속하기', Icon: AppleIcon, cls: 'social--apple' },
 ]
-
-// Supabase 대시보드에서 제공자를 활성화한 뒤 여기에 추가하면 실제 OAuth로 켜진다.
-// 예: new Set(['google', 'kakao']) — 네이버는 Supabase 미지원(커스텀 필요).
-const ENABLED_PROVIDERS = new Set(['google'])
 
 export default function Login() {
   const { signIn, signUp, signInWithProvider } = useAuth()
@@ -37,15 +33,17 @@ export default function Login() {
   }
 
   // 소셜 로그인. 활성화된 제공자만 실제 OAuth로 연결, 나머지는 안내.
-  const handleSocial = async (provider) => {
+  const handleSocial = async (providerKey) => {
     setError('')
     setInfo('')
-    if (!ENABLED_PROVIDERS.has(provider)) {
-      setInfo('소셜 로그인은 곧 지원될 예정이에요. 지금은 이메일로 시작해 주세요. 🙏')
+    if (!isAuthProviderEnabled(providerKey)) {
+      setInfo('이 소셜 로그인은 현재 설정 중이에요. 지금은 다른 로그인 방법을 이용해 주세요. 🙏')
       return
     }
     try {
-      await signInWithProvider(provider) // 제공자 페이지로 리다이렉트
+      const provider = getAuthProviderId(providerKey)
+      const returnTo = state?.redirectTo || '/journal'
+      await signInWithProvider(provider, returnTo) // 제공자 페이지로 리다이렉트
     } catch (err) {
       setError('로그인 중 문제가 생겼어요. 이메일로 시작하거나 잠시 후 다시 시도해 주세요.')
     }

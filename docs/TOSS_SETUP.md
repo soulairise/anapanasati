@@ -3,6 +3,10 @@
 > 결제 **코드는 이미 다 작성돼 있습니다.** 아래 5단계(님/AI가 할 계정·배포 작업)만 하면 실제 결제가 켜집니다.
 > 지금 상태: 토스 키가 없으면 `/premium`의 "구독 시작"은 **데모(즉시 프리미엄)** 로 동작. 키를 넣으면 자동으로 실제 결제창으로 전환됩니다.
 
+> **2026-07-29 진행 상태:** 테스트 클라이언트 키 연결, `profiles` 테이블 생성,
+> `TOSS_SECRET_KEY` 등록, `confirm-payment` Edge Function 배포, 프로덕션 빌드까지 완료.
+> 다음 단계는 5단계의 테스트 결제와 결과 확인입니다.
+
 ## 이미 작성된 코드 (참고)
 - `src/lib/payments.js` — 토스 SDK로 결제창 호출 (`requestSubscription`), `TOSS_READY` 분기
 - `src/pages/Premium.jsx` — "구독 시작" → `TOSS_READY`면 결제창, 아니면 데모

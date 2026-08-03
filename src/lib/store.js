@@ -13,9 +13,18 @@ function toUser(u) {
   return {
     id: u.id,
     email: u.email,
-    display_name: u.user_metadata?.display_name || u.email?.split('@')[0] || '수행자',
+    display_name:
+      u.user_metadata?.display_name ||
+      u.user_metadata?.full_name ||
+      u.user_metadata?.name ||
+      u.user_metadata?.nickname ||
+      u.user_metadata?.preferred_username ||
+      u.email?.split('@')[0] ||
+      '수행자',
   }
 }
+
+const OAUTH_RETURN_TO_KEY = 'soomgil_oauth_return_to'
 
 // ---------- Auth ----------
 export const auth = {
@@ -39,8 +48,10 @@ export const auth = {
     return toUser(data.user)
   },
 
-  // 소셜 로그인 (google / kakao / apple) — 제공자 페이지로 리다이렉트됨
-  async signInWithProvider(provider) {
+  // 소셜 로그인 (google / custom:kakao / custom:naver)
+  async signInWithProvider(provider, returnTo = '/journal') {
+    // OAuth 왕복 과정에서 React Router의 location.state는 사라지므로 별도 보관한다.
+    sessionStorage.setItem(OAUTH_RETURN_TO_KEY, returnTo)
     const { data, error } = await supabase.auth.signInWithOAuth({
       provider,
       options: {
@@ -52,14 +63,23 @@ export const auth = {
     return data
   },
 
+  finishOAuthRedirect() {
+    const returnTo = sessionStorage.getItem(OAUTH_RETURN_TO_KEY)
+    if (!returnTo) return
+    sessionStorage.removeItem(OAUTH_RETURN_TO_KEY)
+
+    const nextHash = `#${returnTo.startsWith('/') ? returnTo : `/${returnTo}`}`
+    if (window.location.hash !== nextHash) window.location.hash = nextHash
+  },
+
   async signOut() {
     await supabase.auth.signOut()
   },
 
   // 로그인 상태 변화 구독 (AuthContext에서 사용)
   onChange(callback) {
-    const { data } = supabase.auth.onAuthStateChange((_event, session) => {
-      callback(toUser(session?.user))
+    const { data } = supabase.auth.onAuthStateChange((event, session) => {
+      callback(toUser(session?.user), event)
     })
     return () => data.subscription.unsubscribe()
   },

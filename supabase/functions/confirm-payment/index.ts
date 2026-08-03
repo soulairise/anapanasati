@@ -75,12 +75,18 @@ Deno.serve(async (req) => {
     if (plan === 'yearly') until.setFullYear(until.getFullYear() + 1)
     else until.setMonth(until.getMonth() + 1)
 
-    await admin.from('profiles').upsert({
+    const { error: profileError } = await admin.from('profiles').upsert({
       id: user.id,
       is_premium: true,
       premium_until: until.toISOString(),
       updated_at: new Date().toISOString(),
     })
+    if (profileError) {
+      return json(
+        { error: true, message: '결제는 승인됐지만 프리미엄 상태를 저장하지 못했습니다.' },
+        500,
+      )
+    }
 
     return json({ ok: true, premium_until: until.toISOString() })
   } catch (e) {
