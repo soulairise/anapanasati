@@ -17,11 +17,11 @@ const PATTERNS = [
 const PHASE_NAMES = ['들이쉬기', '멈추기', '내쉬기', '멈추기']
 // 페이즈별 색상 (들숨→멈춤→날숨→멈춤 순으로 그라데이션 순환)
 const PHASE_COLORS = ['#8a9a82', '#6fa0a8', '#c2a184', '#9a94a6']
-const DURATIONS = [
-  { m: 3, premium: false },
-  { m: 5, premium: false },
-  { m: 10, premium: true },
-] // 분 (10분은 프리미엄)
+// 수행 시간(분) — 전부 무료.
+// 5분 제한은 아나빠나사띠 제1념처도 끝내지 못하는 길이라, 핵심 가치를 체험시키지 못했다.
+// 프리미엄은 시간이 아니라 가이드 음성·커스텀 패턴·오프라인 등 "편의"로 판다.
+// 근거: docs/PRODUCT_STRATEGY.md 6-2
+const DURATIONS = [3, 5, 10, 15, 20].map((m) => ({ m, premium: false }))
 
 export default function Breathe() {
   const navigate = useNavigate()

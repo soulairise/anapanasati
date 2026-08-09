@@ -1,0 +1,72 @@
+/* ============================================================
+   배우기(16일 여정) — 진도 표시
+   공용 클래스(.tetrad-head/.stage-grid/.stage-card)는 App.css를 그대로 쓴다.
+   ============================================================ */
+
+.journey {
+  background: var(--bg-soft);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: var(--sp-3);
+  margin-bottom: var(--sp-5);
+  box-shadow: var(--shadow);
+}
+
+.journey__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--sp-2);
+  margin-bottom: 0.7rem;
+}
+.journey__head strong {
+  font-family: var(--font-serif);
+  font-weight: 700;
+  font-size: 1.05rem;
+}
+.journey__num {
+  color: var(--sage-deep);
+  font-size: 1.5rem;
+  margin: 0 0.1rem;
+}
+
+/* 진도 막대 — 리셋되지 않고 쌓이기만 한다 */
+.journey__bar {
+  height: 8px;
+  border-radius: 999px;
+  background: var(--bg-sunken);
+  overflow: hidden;
+}
+.journey__fill {
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--sage), var(--sage-deep));
+  transition: width 0.8s var(--ease);
+}
+
+.journey__msg {
+  margin-top: 0.8rem;
+  font-size: 0.9rem;
+  color: var(--ink-soft);
+  line-height: 1.7;
+}
+.journey__link {
+  color: var(--sage-deep);
+  font-weight: 500;
+  border-bottom: 1px solid var(--sage);
+}
+
+/* 이미 걸어본 단계 */
+.stage-card.is-done .stage-card__num {
+  background: var(--sage);
+  color: var(--white);
+}
+.stage-card.is-done {
+  border-color: var(--sage);
+}
+
+@media (max-width: 640px) {
+  .journey { padding: var(--sp-2); }
+  .journey__head strong { font-size: 0.95rem; }
+  .journey__num { font-size: 1.3rem; }
+}
