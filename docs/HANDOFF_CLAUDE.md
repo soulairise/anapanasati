@@ -83,6 +83,42 @@
 
 ## 작업 기록
 
+### 2026-08-09 — DONE (관찰 수행/위빠사나 구현 · 배포)
+> 기획: `docs/VIPASSANA_PLAN.md` · 언어 규칙: `docs/PRODUCT_STRATEGY.md` 2-3
+
+**신규 파일 (충돌 없음)**
+- `src/data/vipassana.js` — 개념·사념처 4·5단계·실습 6종. **`attitudes` 키는 전통이 아니라 태도**(observe/accept)로, MBSR을 붙일 때 `accept` 키만 추가하면 같은 실습을 재사용한다.
+- `src/pages/Vipassana.jsx`(허브) / `VipassanaSatipatthana.jsx`(사념처) / `VipassanaDetail.jsx`(상세) / `VipassanaSession.jsx`(4모드 엔진) / `Vipassana.css`
+- `src/lib/vipassanaSound.js` — 종(bell). 비정수배 배음으로 금속 울림 합성. `bowl.js`의 AudioContext 공유(bowl.js 미변경).
+
+**핵심 설계 — 화면이 호흡을 지시하지 않는다**
+요가처럼 "들이쉬기 4초" 오브를 쓰면 위빠사나를 호흡 조절법으로 오해한다. 오브는 호흡과 무관한 8초 자율 맥동만 하고, 사운드도 박자를 지시하지 않고 구간 전환만 표시한다. 준비 화면에도 "숨은 조절하지 마세요"를 명시.
+
+**실습 4모드**
+- `guided` — 구간별 안내문 전환. `script`의 `w`는 상대 가중치라 5/10/15분 어느 쪽을 골라도 같은 비율로 늘어난다.
+- `scan` — 부위 18개를 위→아래 훑고 되돌아옴(35스텝). 인체 실루엣 SVG에 글로우가 내려간다.
+- `walking` — 들림·나아감·놓음 3박자, 좌/우 발 교대. 발 자체가 움직여 박자를 보여준다.
+- `open` — 대상 없음. 화면 거의 비우고 2/3/5분 간격 종소리만. 시작 전 동의 필요.
+
+**2층 언어 적용**
+메뉴·제목은 "관찰 수행", 전통 용어(위빠사나·신념처 등)는 eyebrow와 접어 둔 `<details>` "이 수행의 유래"에만.
+
+**공용 파일(추가만)**
+- `src/App.jsx` — 라우트 4개 추가
+- `src/components/Navbar.jsx` — `PRACTICE_LINKS`에 "관찰 수행" 한 줄 추가 (드롭다운 덕분에 네비는 그대로 5개)
+
+**구현 중 발견해 고친 버그 3건**
+1. **세션이 끊기지 않던 문제** — `/vipassana/:id/practice`가 같은 라우트 패턴이라 실습을 바꿔도 컴포넌트가 재사용되면서 이전 타이머가 계속 돌고 선택값이 어긋났다. `id` 변경 시 초기화하는 effect 추가.
+2. **시작 시 스크롤이 남던 문제** — `index.css`의 전역 `scroll-behavior: smooth` 때문에 `window.scrollTo(0,0)`가 완료되지 않았다. `behavior:'instant'`로 명시.
+3. **실루엣이 배경에 묻힘** — `--bg-sunken` 채움이 `--bg`와 대비가 없었다. 테마 색조를 옅게 깐 rgba로 교체.
+
+**함께 보완한 것**
+- `.page`에 배경이 없어 장르 색이 카드에만 적용되던 문제 — `.vipassana-theme`·`.yoga-theme`에 `background: var(--bg)` 추가해 화면 전체에서 장르가 읽히게 함.
+- 파문은 볼 것이 오브뿐인 모드(guided·open)에서만. 몸 훑기·경행에는 실루엣·발이 있어 겹치면 산만하다.
+
+- 검증: 빌드 성공(125 모듈), 콘솔 에러 0, 4모드 실동작 확인, 360px 가로 넘침 없음. **배포 완료** — `assets/index-A5rPzESm.js`, `assets/index-DAXDVRlK.css`
+- **범위 밖(다음)**: 실습 완료를 수행일지에 기록(요가도 미연동), 자애(사무량심), MBSR.
+
 ### 2026-08-07 — DONE (모바일 결함 2건 수정 · '수련' 드롭다운)
 - **① '수련' 드롭다운 신설** — `src/components/Navbar.jsx` 개편, `src/components/Navbar.css` 신규.
   - 네비 **6개 → 5개** (배우기 · 수련▾ · 수행일지 · 프리미엄 · 로그인). `호흡하기`·`요가 호흡`을 드롭다운으로 묶음.
