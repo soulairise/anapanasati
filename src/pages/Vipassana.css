@@ -1,0 +1,409 @@
+/* ============================================================
+   관찰 수행(위빠사나) 화면
+   공용 클래스(.card/.tetrad-head/.stage-grid/.stage-card/.tip-box/.warn-box)는
+   App.css를 그대로 쓴다.
+
+   장르 색 — 아나빠나사띠 세이지, 요가 테라코타에 이은 세 번째:
+   차분한 슬레이트 인디고. 관찰·거리두기·명료함.
+   모티프 — 잔잔한 수면의 동심원 파문(스스로 일어나고 스스로 사라짐 = 무상).
+   ============================================================ */
+
+.vipassana-theme {
+  --sage: #6b7b94;        /* 슬레이트 인디고 액센트 */
+  --sage-deep: #4e5c73;
+  --bg: #f2f3f5;          /* 살짝 쿨한 미색 */
+  --bg-soft: #fafbfc;
+  --bg-sunken: #e8eaee;
+
+  /* .page에는 배경이 없어 body(:root) 색이 비친다.
+     장르 색이 화면 전체에서 읽히도록 여기서 직접 칠한다. */
+  background: var(--bg);
+}
+
+/* ---------- 허브 ---------- */
+.vp-concept { padding: var(--sp-4); margin-bottom: var(--sp-4); }
+.vp-concept h2 { font-size: 1.5rem; margin: 0.2rem 0 var(--sp-2); }
+.vp-concept__body { color: var(--ink-soft); line-height: 1.85; }
+
+/* 가장 흔한 오해를 먼저 푸는 박스 */
+.vp-myth {
+  margin-top: var(--sp-3);
+  padding: var(--sp-2) var(--sp-3);
+  border-left: 3px solid var(--sage);
+  background: var(--bg-sunken);
+  border-radius: 0 12px 12px 0;
+  font-size: 0.93rem;
+  color: var(--ink-soft);
+  line-height: 1.8;
+}
+.vp-myth b { color: var(--ink); }
+
+/* 사마타 vs 위빠사나 */
+.vp-vs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--sp-2);
+  margin-top: var(--sp-3);
+}
+.vp-vs__item {
+  padding: var(--sp-2);
+  background: var(--bg-sunken);
+  border-radius: 12px;
+  text-align: center;
+}
+.vp-vs__item--accent { background: var(--sage); color: #fff; }
+.vp-vs__item--accent .vp-vs__pali,
+.vp-vs__item--accent p { color: rgba(255, 255, 255, 0.86); }
+.vp-vs__label { font-family: var(--font-serif); font-weight: 700; font-size: 1rem; }
+.vp-vs__pali { display: block; font-size: 0.78rem; color: var(--ink-faint); margin-top: 1px; }
+.vp-vs__item p { font-size: 0.88rem; color: var(--ink-soft); margin-top: 0.45rem; line-height: 1.65; }
+.vp-vs__note {
+  margin-top: var(--sp-2);
+  font-size: 0.88rem;
+  color: var(--ink-faint);
+  line-height: 1.75;
+}
+
+/* 삼법인 */
+.vp-marks { display: grid; gap: var(--sp-2); margin-top: var(--sp-1); }
+.vp-mark {
+  padding: var(--sp-2);
+  background: var(--bg-sunken);
+  border-radius: 12px;
+}
+.vp-mark b { font-family: var(--font-serif); font-size: 1rem; }
+.vp-mark .vp-mark__pali { margin-left: 0.5rem; font-size: 0.78rem; color: var(--ink-faint); }
+.vp-mark p { font-size: 0.88rem; color: var(--ink-soft); margin-top: 0.25rem; line-height: 1.7; }
+
+/* 사념처 안내 카드 (요가의 아쉬탕가 카드와 같은 역할) */
+.vp-satipatthana-card {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  padding: var(--sp-4);
+  margin-bottom: var(--sp-4);
+  cursor: pointer;
+}
+.vp-satipatthana-card:hover { box-shadow: var(--shadow-lg); transform: translateY(-2px); }
+.vp-satipatthana-card h3 { font-size: 1.2rem; margin: 0.2rem 0; }
+.vp-satipatthana-card p.muted { font-size: 0.92rem; }
+.vp-arrow { font-size: 1.5rem; color: var(--sage-deep); flex-shrink: 0; }
+
+/* 이름 붙이기(노팅) 라벨 */
+.vp-labels { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-top: var(--sp-2); }
+.vp-label-chip {
+  padding: 0.3rem 0.75rem;
+  border-radius: 999px;
+  background: var(--bg-sunken);
+  color: var(--ink-soft);
+  font-size: 0.85rem;
+}
+
+/* 안전 안내 */
+.vp-safety {
+  padding: var(--sp-3);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--bg-soft);
+  margin-bottom: var(--sp-4);
+}
+.vp-safety__title { font-family: var(--font-serif); font-weight: 700; margin-bottom: 0.6rem; }
+.vp-safety ul { margin: 0; padding-left: 1.1rem; }
+.vp-safety li {
+  font-size: 0.9rem;
+  color: var(--ink-soft);
+  line-height: 1.75;
+  margin-bottom: 0.4rem;
+}
+
+/* 단계 섹션 */
+.vp-level { margin-bottom: var(--sp-5); }
+.vp-card-meta {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.8rem;
+  color: var(--ink-faint);
+  margin-top: 0.15rem;
+}
+.vp-badge {
+  padding: 0.12rem 0.5rem;
+  border-radius: 999px;
+  background: var(--bg-sunken);
+  font-size: 0.75rem;
+}
+
+/* ---------- 사념처 학습 화면 ---------- */
+.vp-sati-item { padding: var(--sp-4); margin-bottom: var(--sp-3); }
+.vp-sati-item h3 { font-size: 1.25rem; margin-bottom: 0.15rem; }
+.vp-sati-item .vp-sati-pali { font-size: 0.85rem; color: var(--ink-faint); }
+.vp-sati-item > p { color: var(--ink-soft); line-height: 1.85; margin-top: var(--sp-2); }
+.vp-sati-ex { margin-top: var(--sp-2); padding-left: 1.1rem; }
+.vp-sati-ex li { font-size: 0.9rem; color: var(--ink-soft); line-height: 1.7; }
+.vp-sati-map {
+  display: inline-block;
+  margin-top: var(--sp-2);
+  padding: 0.25rem 0.7rem;
+  border-radius: 999px;
+  background: var(--bg-sunken);
+  font-size: 0.8rem;
+  color: var(--ink-soft);
+}
+
+/* ---------- 실습 상세 ---------- */
+.vp-detail-section { margin-top: var(--sp-4); }
+.vp-steps { padding-left: 1.2rem; }
+.vp-steps li { color: var(--ink-soft); line-height: 1.85; margin-bottom: 0.5rem; }
+.vp-benefits { display: flex; flex-wrap: wrap; gap: 0.4rem; }
+
+/* 2층 — 접어 둔 유래. 사용자가 스스로 열게 한다. */
+.vp-origin {
+  margin-top: var(--sp-4);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--bg-soft);
+  overflow: hidden;
+}
+.vp-origin > summary {
+  padding: var(--sp-2) var(--sp-3);
+  cursor: pointer;
+  font-size: 0.92rem;
+  color: var(--ink-soft);
+  list-style: none;
+}
+.vp-origin > summary::-webkit-details-marker { display: none; }
+.vp-origin > summary::before { content: '▸ '; color: var(--ink-faint); }
+.vp-origin[open] > summary::before { content: '▾ '; }
+.vp-origin__body {
+  padding: 0 var(--sp-3) var(--sp-3);
+  font-size: 0.9rem;
+  color: var(--ink-soft);
+  line-height: 1.8;
+}
+
+/* ---------- 세션 공통 ---------- */
+.vp-session { position: relative; }
+.vp-stage {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--sp-2);
+  min-height: 440px;
+  justify-content: center;
+  z-index: 1;
+}
+
+/* 잔잔한 수면 배경 */
+.vp-water {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(circle at 50% 45%, rgba(107, 123, 148, 0.13), transparent 62%);
+  z-index: 0;
+}
+
+/* 동심원 파문 — 스스로 일어나고 스스로 사라진다 */
+.vp-ripples {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+}
+.vp-ripple {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 120px;
+  height: 120px;
+  margin: -60px 0 0 -60px;
+  border: 1px solid var(--sage);
+  border-radius: 50%;
+  opacity: 0;
+  animation: vpRipple 9s var(--ease) forwards;
+}
+@keyframes vpRipple {
+  0%   { transform: scale(0.35); opacity: 0.42; }
+  100% { transform: scale(3.4);  opacity: 0; }
+}
+
+/*
+  오브 — 호흡을 "지시하지 않는다".
+  8초 주기의 아주 느린 자율 맥동만 한다. 사용자의 숨과 무관하며,
+  따라 쉬라는 신호가 아니라 화면이 살아 있다는 표시일 뿐이다.
+*/
+.vp-orb {
+  position: relative;
+  width: 150px;
+  height: 150px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: radial-gradient(circle at 35% 32%, rgba(255, 255, 255, 0.85), var(--sage) 74%);
+  box-shadow: 0 12px 44px rgba(78, 92, 115, 0.24);
+  animation: vpDrift 8s ease-in-out infinite;
+}
+@keyframes vpDrift {
+  0%, 100% { transform: scale(0.97); }
+  50%      { transform: scale(1.03); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .vp-orb { animation: none; }
+  .vp-ripple { animation-duration: 0.01s; }
+}
+
+.vp-guide {
+  max-width: 22rem;
+  text-align: center;
+  font-family: var(--font-serif);
+  font-size: 1.15rem;
+  line-height: 1.75;
+  color: var(--ink);
+  min-height: 4rem;
+  /* 구간이 바뀌면 key가 바뀌며 새로 마운트된다 → 부드럽게 떠오른다 */
+  animation: vpGuideIn 1.1s var(--ease);
+}
+@keyframes vpGuideIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .vp-guide { animation: none; }
+}
+
+.vp-elapsed { font-size: 0.85rem; color: var(--ink-faint); letter-spacing: 0.02em; }
+
+/* 노팅 힌트 */
+.vp-noting {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.35rem;
+  max-width: 22rem;
+}
+.vp-noting-chip {
+  padding: 0.25rem 0.65rem;
+  border-radius: 999px;
+  background: var(--bg-sunken);
+  color: var(--ink-faint);
+  font-size: 0.8rem;
+}
+
+/* ---------- 몸 훑기 ---------- */
+.vp-body {
+  position: relative;
+  width: 120px;
+  height: 300px;
+}
+.vp-body svg { width: 100%; height: 100%; overflow: visible; }
+/* 배경과 대비가 서야 형태가 읽힌다. 테마 색조를 옅게 깔아 색이 따로 놀지 않게. */
+.vp-body__silhouette {
+  fill: rgba(107, 123, 148, 0.15);
+  stroke: rgba(78, 92, 115, 0.28);
+  stroke-width: 1;
+}
+.vp-body__glow { transition: transform 1.2s var(--ease); }
+.vp-part {
+  font-family: var(--font-serif);
+  font-size: 1.35rem;
+  color: var(--ink);
+}
+.vp-scan-progress {
+  width: 190px;
+  height: 5px;
+  border-radius: 999px;
+  background: var(--bg-sunken);
+  overflow: hidden;
+}
+.vp-scan-progress > div {
+  height: 100%;
+  border-radius: 999px;
+  background: var(--sage);
+  transition: width 0.6s var(--ease);
+}
+
+/* ---------- 경행 ---------- */
+.vp-beat {
+  font-family: var(--font-serif);
+  font-size: 2rem;
+  color: var(--ink);
+}
+.vp-beat-hint { font-size: 0.9rem; color: var(--ink-soft); }
+.vp-feet {
+  display: flex;
+  gap: var(--sp-4);
+  align-items: flex-end;
+  margin-bottom: var(--sp-1);
+}
+.vp-foot {
+  width: 46px;
+  height: 76px;
+  border-radius: 24px 24px 16px 16px;
+  background: var(--bg-sunken);
+  border: 1px solid var(--line);
+  transition: transform 0.35s var(--ease), background 0.35s var(--ease), box-shadow 0.35s var(--ease);
+}
+.vp-foot.is-active {
+  background: var(--sage);
+  border-color: var(--sage-deep);
+  box-shadow: 0 8px 24px rgba(78, 92, 115, 0.28);
+}
+/* 들림 → 나아감 → 놓음 을 발 자체의 움직임으로 보여준다 */
+.vp-foot.is-active.beat-lift  { transform: translateY(-16px); }
+.vp-foot.is-active.beat-move  { transform: translateY(-16px) translateX(12px); }
+.vp-foot.is-active.beat-place { transform: translateY(0) translateX(12px); }
+
+/* ---------- 열린 알아차림 ---------- */
+.vp-open-hint {
+  font-family: var(--font-serif);
+  font-size: 1.1rem;
+  color: var(--ink-soft);
+  text-align: center;
+  max-width: 20rem;
+  line-height: 1.8;
+}
+.vp-bell-flash {
+  font-family: var(--font-serif);
+  font-size: 1.25rem;
+  color: var(--sage-deep);
+  animation: vpBellIn 4s var(--ease) forwards;
+}
+@keyframes vpBellIn {
+  0%   { opacity: 0; }
+  12%  { opacity: 1; }
+  70%  { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+/* ---------- 마무리 ---------- */
+.vp-closing {
+  text-align: center;
+  font-family: var(--font-serif);
+  font-size: 1.3rem;
+  line-height: 1.8;
+  color: var(--ink);
+}
+
+/* ---------- 반응형 ---------- */
+@media (max-width: 640px) {
+  .vp-vs { grid-template-columns: 1fr; }
+  .vp-concept { padding: var(--sp-3); }
+
+  .vp-satipatthana-card {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--sp-2);
+    padding: var(--sp-3);
+  }
+  .vp-arrow { align-self: flex-end; }
+
+  .vp-orb { width: 124px; height: 124px; }
+  .vp-guide { font-size: 1.05rem; max-width: 18rem; }
+  .vp-body { width: 104px; height: 260px; }
+  .vp-part { font-size: 1.2rem; }
+  .vp-beat { font-size: 1.7rem; }
+  .vp-stage { min-height: 400px; }
+}

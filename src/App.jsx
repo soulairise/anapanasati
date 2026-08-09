@@ -16,6 +16,10 @@ import YogaBreathing from './pages/YogaBreathing'
 import YogaAshtanga from './pages/YogaAshtanga'
 import YogaTechnique from './pages/YogaTechnique'
 import YogaPractice from './pages/YogaPractice'
+import Vipassana from './pages/Vipassana'
+import VipassanaSatipatthana from './pages/VipassanaSatipatthana'
+import VipassanaDetail from './pages/VipassanaDetail'
+import VipassanaSession from './pages/VipassanaSession'
 import './App.css'
 
 // 로그인 필요한 라우트 보호
@@ -40,6 +44,10 @@ export default function App() {
           <Route path="/yoga/ashtanga" element={<YogaAshtanga />} />
           <Route path="/yoga/:id" element={<YogaTechnique />} />
           <Route path="/yoga/:id/practice" element={<YogaPractice />} />
+          <Route path="/vipassana" element={<Vipassana />} />
+          <Route path="/vipassana/satipatthana" element={<VipassanaSatipatthana />} />
+          <Route path="/vipassana/:id" element={<VipassanaDetail />} />
+          <Route path="/vipassana/:id/practice" element={<VipassanaSession />} />
           <Route path="/complete" element={<SessionComplete />} />
           <Route path="/login" element={<Login />} />
           <Route path="/premium" element={<Premium />} />
