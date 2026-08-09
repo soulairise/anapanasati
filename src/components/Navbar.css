@@ -1,0 +1,79 @@
+/* ============================================================
+   네비게이션 '수련' 드롭다운
+   기본 .navbar / .navbar__link 스타일은 App.css에 있다.
+   ============================================================ */
+
+.navbar__menu {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.navbar__menu-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+.navbar__caret {
+  font-size: 0.7em;
+  line-height: 1;
+  transition: transform 0.2s var(--ease);
+}
+.navbar__caret.is-open { transform: rotate(180deg); }
+
+.navbar__dropdown {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%);
+  min-width: 200px;
+  max-width: calc(100vw - 2 * var(--sp-3));
+  padding: 0.35rem;
+  background: var(--bg-soft);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  box-shadow: var(--shadow-lg);
+  z-index: 60;                /* .navbar(z-index 50)보다 위 */
+  /* transform은 위치 지정에 쓰이므로 애니메이션은 opacity만 건드린다 */
+  animation: navDropIn 0.18s var(--ease);
+}
+
+@keyframes navDropIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+.navbar__dropdown-item {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  padding: 0.6rem 0.8rem;
+  border-radius: 11px;
+  color: var(--ink-soft);
+  transition: background 0.15s var(--ease), color 0.15s var(--ease);
+}
+.navbar__dropdown-item:hover { background: var(--bg-sunken); color: var(--ink); }
+.navbar__dropdown-item.is-current { color: var(--sage-deep); }
+.navbar__dropdown-item.is-current .navbar__dropdown-label { font-weight: 500; }
+
+.navbar__dropdown-label { font-size: 0.95rem; white-space: nowrap; }
+.navbar__dropdown-hint {
+  font-size: 0.78rem;
+  color: var(--ink-faint);
+  white-space: nowrap;
+}
+
+@media (max-width: 640px) {
+  .navbar__dropdown { min-width: 170px; }
+  .navbar__dropdown-item { padding: 0.55rem 0.7rem; }
+  .navbar__dropdown-label { font-size: 0.9rem; }
+}
+
+/* 아주 좁은 화면에서는 버튼이 왼쪽에 붙으므로 가운데 정렬을 풀어 잘림을 막는다 */
+@media (max-width: 380px) {
+  .navbar__dropdown {
+    left: 0;
+    right: auto;
+    transform: none;
+  }
+}

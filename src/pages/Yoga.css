@@ -248,4 +248,14 @@
   .yoga-vs { grid-template-columns: 1fr; }
   .yoga-vs__mid { display: none; }
   .yoga-elements { grid-template-columns: 1fr; }
+
+  /* 좁은 폭에서 화살표가 세로 가운데 정렬되면 본문 중간에 끼어 보인다.
+     세로로 쌓고 화살표를 맨 아래 오른쪽으로 보낸다. */
+  .yoga-ashtanga-card {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--sp-2);
+    padding: var(--sp-3);
+  }
+  .yoga-arrow { align-self: flex-end; }
 }
