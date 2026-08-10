@@ -8,12 +8,34 @@ import { speak, stopNarration, primeNarration, PHASE_WORDS } from '../lib/narrat
 import './Breathe.css'
 
 // 호흡 패턴: [들숨, 멈춤, 날숨, 멈춤] (초)
+//
+// 기본값은 공명주파수 연구가 말하는 분당 4.5~6.5회 안에 있어야 한다.
+// 이전 기본값 4-4-6-2는 16초 주기 = 분당 3.75회로 범위 밖이었다. 입문자가 첫 화면에서
+// 이걸 만나 억지로 따라가면 과호흡·어지럼이나 이완유발불안(RIA)으로 이어진다.
+// 느린 패턴은 없애지 않고 "심화·수면"으로 옮기고, 기본을 분당 6회로 둔다.
 const PATTERNS = [
-  { key: '4-4-6-2', label: '기본 (4-4-6-2)', phases: [4, 4, 6, 2], premium: false },
-  { key: '4-7-8-0', label: '이완 (4-7-8)', phases: [4, 7, 8, 0], premium: true },
-  { key: '4-4-4-4', label: '사각 (4-4-4-4)', phases: [4, 4, 4, 4], premium: true },
-  { key: '6-0-6-0', label: '고요 (6-6)', phases: [6, 0, 6, 0], premium: false },
+  { key: '4-0-6-0', label: '기본', phases: [4, 0, 6, 0], premium: false }, // 10초 · 분당 6회
+  { key: '6-0-6-0', label: '고요', phases: [6, 0, 6, 0], premium: false }, // 12초 · 분당 5회
+  { key: '4-4-6-2', label: '심화', phases: [4, 4, 6, 2], premium: false }, // 16초 · 분당 3.8회
+  { key: '4-4-4-4', label: '사각', phases: [4, 4, 4, 4], premium: true },  // 16초 · 분당 3.8회
+  { key: '4-7-8-0', label: '수면', phases: [4, 7, 8, 0], premium: true },  // 19초 · 분당 3.2회
 ]
+
+// 분당 호흡수 — 무엇을 고르는지 알 수 있게 칩에 함께 보여준다
+const bpmOf = (phases) => 60 / phases.reduce((a, b) => a + b, 0)
+const bpmLabel = (phases) => {
+  const v = bpmOf(phases)
+  return `분당 ${Number.isInteger(v) ? v : v.toFixed(1)}회`
+}
+
+// 세션 중 속도 조절 — 들숨·날숨에만 ±초를 더한다(멈춤은 그대로).
+// 개인 공명주파수는 재검사 시 3분의 2가 바뀐다. 정밀 측정 기능을 만드는 것보다
+// 사용자가 그 자리에서 자기 속도를 찾게 하는 편이 근거상 합리적이다.
+const TEMPO_MIN = -2
+const TEMPO_MAX = 4
+const TEMPO_KEY = 'soomgil_breath_tempo'
+const applyTempo = (phases, adj) =>
+  phases.map((sec, i) => (sec > 0 && (i === 0 || i === 2) ? Math.max(2, sec + adj) : sec))
 const PHASE_NAMES = ['들이쉬기', '멈추기', '내쉬기', '멈추기']
 // 페이즈별 색상 (들숨→멈춤→날숨→멈춤 순으로 그라데이션 순환)
 const PHASE_COLORS = ['#8a9a82', '#6fa0a8', '#c2a184', '#9a94a6']
@@ -31,6 +53,10 @@ export default function Breathe() {
   const { isPremium } = usePremium()
 
   const [pattern, setPattern] = useState(PATTERNS[0])
+  const [tempo, setTempo] = useState(() => {
+    const v = Number(localStorage.getItem(TEMPO_KEY))
+    return Number.isFinite(v) ? Math.min(TEMPO_MAX, Math.max(TEMPO_MIN, v)) : 0
+  })
   const [minutes, setMinutes] = useState(3)
   const [running, setRunning] = useState(false)
   const [phaseIdx, setPhaseIdx] = useState(0)
@@ -70,10 +96,22 @@ export default function Breathe() {
     setAmbientKind(null)
   }
 
+  // 속도 조절값은 다음 세션에도 이어진다
+  useEffect(() => {
+    localStorage.setItem(TEMPO_KEY, String(tempo))
+  }, [tempo])
+
+  const tunedPhases = applyTempo(pattern.phases, tempo)
+
   // 유효 페이즈만 (0초 페이즈는 건너뜀)
-  const activePhases = pattern.phases
+  const activePhases = tunedPhases
     .map((sec, i) => ({ sec, name: PHASE_NAMES[i], idx: i }))
     .filter((p) => p.sec > 0)
+
+  // 타이머 루프가 클로저로 배열을 잡아버리면 세션 중 조절이 반영되지 않는다.
+  // ref로 최신값을 넘겨 다음 페이즈 경계부터 새 속도가 적용되게 한다.
+  const activePhasesRef = useRef(activePhases)
+  activePhasesRef.current = activePhases
 
   // 페이즈 진입 시 연출: 원 크기 · 물결 · 싱잉볼
   const enterPhase = (idx, durSec) => {
@@ -117,13 +155,13 @@ export default function Breathe() {
 
     let cancelled = false
     let curr = 0
-    let remain = activePhases[0].sec
+    let remain = activePhasesRef.current[0].sec
 
     // 바로 시작하지 않고 ~2.5초 준비 후 첫 들숨 시작 (나레이션과 함께)
     const prepTimer = setTimeout(() => {
       if (cancelled) return
       setPreparing(false)
-      enterPhase(activePhases[0].idx, activePhases[0].sec)
+      enterPhase(activePhasesRef.current[0].idx, activePhasesRef.current[0].sec)
       setPhaseRemain(remain)
 
       tickRef.current = setInterval(() => {
@@ -131,9 +169,11 @@ export default function Breathe() {
         setElapsed((e) => e + 1)
 
         if (remain <= 0) {
-          curr = (curr + 1) % activePhases.length
-          remain = activePhases[curr].sec
-          enterPhase(activePhases[curr].idx, activePhases[curr].sec)
+          // 매 경계마다 최신 페이즈를 읽는다 → 세션 중 속도 조절이 여기서 반영된다
+          const list = activePhasesRef.current
+          curr = (curr + 1) % list.length
+          remain = list[curr].sec
+          enterPhase(list[curr].idx, list[curr].sec)
         }
         setPhaseRemain(remain)
       }, 1000)
@@ -260,11 +300,11 @@ export default function Breathe() {
                 return (
                   <button
                     key={p.key}
-                    className={`pattern-chip ${pattern.key === p.key ? 'active' : ''} ${locked ? 'is-locked' : ''}`}
+                    className={`pattern-chip pattern-chip--stacked ${pattern.key === p.key ? 'active' : ''} ${locked ? 'is-locked' : ''}`}
                     onClick={() => (locked ? navigate('/premium') : setPattern(p))}
                   >
-                    {p.label}
-                    {locked ? ' 🔒' : ''}
+                    <span>{p.label}{locked ? ' 🔒' : ''}</span>
+                    <span className="pattern-chip__bpm">{bpmLabel(applyTempo(p.phases, tempo))}</span>
                   </button>
                 )
               })}
@@ -333,11 +373,31 @@ export default function Breathe() {
                 </div>
               </div>
               <div className="breath-phase-label">
-                {preparing ? '잠시 후 시작합니다' : PHASE_NAMES[phaseIdx]}
+                {preparing ? '편안히 앉으셨다면, 곧 시작합니다' : PHASE_NAMES[phaseIdx]}
               </div>
               <div className="breath-timer">
                 {Math.floor(elapsed / 60)}분 {elapsed % 60}초 / {minutes}분
               </div>
+
+              {/* 자기 속도 찾기 — 숫자를 정확히 맞추는 것이 목적이 아니다 */}
+              <div className="tempo-row">
+                <button
+                  className="tempo-btn"
+                  disabled={tempo >= TEMPO_MAX}
+                  onClick={() => setTempo((t) => Math.min(TEMPO_MAX, t + 1))}
+                >
+                  조금 느리게
+                </button>
+                <span className="tempo-now">{bpmLabel(tunedPhases)}</span>
+                <button
+                  className="tempo-btn"
+                  disabled={tempo <= TEMPO_MIN}
+                  onClick={() => setTempo((t) => Math.max(TEMPO_MIN, t - 1))}
+                >
+                  조금 빠르게
+                </button>
+              </div>
+              <p className="tempo-hint">숫자를 정확히 맞추지 않아도 됩니다. 불편하면 자기 속도로 돌아오세요.</p>
             </div>
 
             {/* 소리 토글 (싱잉볼 · 파도 · 음성 안내) */}

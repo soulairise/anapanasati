@@ -7,6 +7,26 @@ import './Yoga.css'
 
 const DURATIONS = [2, 3, 5]
 
+// 강한 호흡법(카팔라바티·바스트리카)은 첫 세션을 짧게 강제한다.
+// 지침은 초회 1~2분 이내이고, 카팔라바티는 기흉 증례보고가 있는 기법이다.
+const DONE_KEY = 'soomgil_pulsed_done'
+const readDoneCount = (id) => {
+  try {
+    return Number(JSON.parse(localStorage.getItem(DONE_KEY) || '{}')[id]) || 0
+  } catch {
+    return 0
+  }
+}
+const bumpDoneCount = (id) => {
+  try {
+    const m = JSON.parse(localStorage.getItem(DONE_KEY) || '{}')
+    m[id] = (Number(m[id]) || 0) + 1
+    localStorage.setItem(DONE_KEY, JSON.stringify(m))
+  } catch {
+    /* 저장 실패는 무시 — 제한은 보수적으로 걸린다 */
+  }
+}
+
 // 요가 장르 색 — 따뜻한 차크라 느낌 (들숨 앰버 → 멈춤 로즈 → 날숨 인디고)
 const PHASE_COLOR = {
   inhale: '#e0a15c',
@@ -47,6 +67,7 @@ export default function YogaPractice() {
   const [minutes, setMinutes] = useState(3)
   const [running, setRunning] = useState(false)
   const [consented, setConsented] = useState(false)
+  const [unwell, setUnwell] = useState(false)
   const [soundOn, setSoundOn] = useState(true)
 
   const [label, setLabel] = useState('')
@@ -99,6 +120,12 @@ export default function YogaPractice() {
   const mode = t.timer.mode
   const needConsent = t.timer.requireConsent && !consented
 
+  // 첫 세션은 라운드를 줄인다. 3회 완료해야 원래 라운드가 열린다.
+  const doneCount = readDoneCount(id)
+  const firstLimit = t.timer.firstSessionRounds
+  const isLimited = mode === 'pulsed' && firstLimit != null && doneCount < 3
+  const effectiveRounds = isLimited ? firstLimit : t.timer.rounds
+
   const spawnRipple = (color) => {
     const rid = ++rippleId.current
     setRipples((rs) => [...rs, { id: rid, color }])
@@ -125,7 +152,14 @@ export default function YogaPractice() {
 
   const finish = () => {
     stop()
+    if (mode === 'pulsed') bumpDoneCount(id) // 완주해야 다음 라운드가 열린다
     navigate(`/yoga/${id}`)
+  }
+
+  // 어지러움·숨가쁨은 즉시 중단이 원칙이다. 세션 중 항상 손에 닿는 곳에 둔다.
+  const stopUnwell = () => {
+    stop()
+    setUnwell(true)
   }
 
   const toggleSound = () => {
@@ -186,7 +220,8 @@ export default function YogaPractice() {
 
   // ---------- pulsed ----------
   const runPulsed = () => {
-    const { pulseSec, pulses, rounds, restSec } = t.timer
+    const { pulseSec, pulses, restSec } = t.timer
+    const rounds = effectiveRounds
     setPhaseColor(PULSE_COLOR)
     setPhaseKind('inhale')
 
@@ -260,11 +295,43 @@ export default function YogaPractice() {
 
         {!running ? (
           <div className="text-center">
-            {needConsent ? (
+            {unwell ? (
+              <div className="warn-box" style={{ textAlign: 'left' }}>
+                <p className="warn-box__title">잘 멈추셨습니다</p>
+                <p>지금은 아무것도 하지 않아도 됩니다. 앉거나 누운 채로 코로 편안히 숨쉬세요.</p>
+                <ul style={{ margin: '0.7rem 0 0 1.1rem', lineHeight: 1.9 }}>
+                  <li>숨을 깊게 쉬려 하지 말고, <b>평소보다 조금 얕게</b> 두세요.</li>
+                  <li>발바닥이 바닥에 닿은 감각으로 돌아옵니다.</li>
+                  <li>어지러움은 보통 1~2분 안에 가라앉습니다.</li>
+                </ul>
+                <p style={{ marginTop: '0.8rem' }}>
+                  증상이 이어지거나 가슴 통증·호흡곤란이 있으면 수련을 멈추고 의료진과 상의하세요.
+                </p>
+                <div className="breathe-controls" style={{ marginTop: '1rem', justifyContent: 'flex-start' }}>
+                  <button className="btn btn--ghost" onClick={() => navigate('/yoga')}>요가 호흡법으로</button>
+                  <button className="btn btn--ghost" onClick={() => setUnwell(false)}>준비 화면으로</button>
+                </div>
+              </div>
+            ) : needConsent ? (
               <div className="warn-box" style={{ textAlign: 'left' }}>
                 <p className="warn-box__title">⚠️ 시작 전 확인</p>
-                <p>이런 분은 피하세요: {t.contraindications.join(' · ')}</p>
-                <button className="btn btn--ghost" style={{ marginTop: '0.8rem' }} onClick={() => setConsented(true)}>
+                <p><b>이런 분은 피하세요</b></p>
+                <ul style={{ margin: '0.5rem 0 0 1.1rem', lineHeight: 1.9 }}>
+                  {t.contraindications.map((c) => (
+                    <li key={c}>{c}</li>
+                  ))}
+                </ul>
+                {t.cautions.length > 0 && (
+                  <>
+                    <p style={{ marginTop: '0.9rem' }}><b>지켜주세요</b></p>
+                    <ul style={{ margin: '0.5rem 0 0 1.1rem', lineHeight: 1.9 }}>
+                      {t.cautions.map((c) => (
+                        <li key={c}>{c}</li>
+                      ))}
+                    </ul>
+                  </>
+                )}
+                <button className="btn btn--ghost" style={{ marginTop: '0.9rem' }} onClick={() => setConsented(true)}>
                   해당사항 없어요, 계속하기
                 </button>
               </div>
@@ -285,7 +352,17 @@ export default function YogaPractice() {
                   </>
                 )}
                 {mode === 'pulsed' && (
-                  <p className="muted">{t.timer.pulses}회 × {t.timer.rounds}라운드 (라운드 사이 {t.timer.restSec}초 휴식)</p>
+                  <>
+                    <p className="muted">
+                      {t.timer.pulses}회 × {effectiveRounds}라운드 (라운드 사이 {t.timer.restSec}초 휴식)
+                    </p>
+                    {isLimited && (
+                      <p className="faint" style={{ fontSize: '0.85rem', marginTop: '0.4rem', lineHeight: 1.7 }}>
+                        강한 호흡법이라 처음 세 번은 {firstLimit}라운드로 짧게 합니다.
+                        몸이 익숙해지면 {t.timer.rounds}라운드가 열립니다. ({doneCount}/3회 완료)
+                      </p>
+                    )}
+                  </>
                 )}
 
                 <div className="setting-row" style={{ marginTop: '1.2rem' }}>
@@ -343,6 +420,10 @@ export default function YogaPractice() {
               <button className="btn btn--ghost" onClick={stop}>멈추기</button>
               <button className="btn btn--primary" onClick={finish}>마치기</button>
             </div>
+
+            <button className="unwell-btn" onClick={stopUnwell}>
+              어지러워요 · 바로 멈추기
+            </button>
           </div>
         )}
 

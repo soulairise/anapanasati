@@ -285,3 +285,22 @@
   }
   .yoga-arrow { align-self: flex-end; }
 }
+
+/* 세션 중 즉시 중단 — 어지러움·숨가쁨은 참지 않는 것이 원칙이라
+   다른 버튼과 섞지 않고 항상 손에 닿는 자리에 따로 둔다. */
+.unwell-btn {
+  display: block;
+  margin: var(--sp-2) auto 0;
+  padding: 0.5rem 1.1rem;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: transparent;
+  color: var(--ink-faint);
+  font-size: 0.85rem;
+  transition: all 0.2s var(--ease);
+}
+.unwell-btn:hover {
+  border-color: var(--clay-deep);
+  color: var(--clay-deep);
+  background: var(--bg-soft);
+}
