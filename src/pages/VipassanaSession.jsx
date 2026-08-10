@@ -317,20 +317,25 @@ export default function VipassanaSession() {
       <div className="vp-water" />
       <div className="container container--narrow vp-session">
         <div className="vp-stage">
-          {/* 파문은 볼 것이 오브뿐인 모드에서만.
-              몸 훑기·경행에는 이미 실루엣·발이 있어 겹치면 산만해진다. */}
+          {/* 오브와 물결을 한 홀더에 담아 중심을 일치시킨다.
+              홀더 없이 stage 기준 50%로 두면 아래 텍스트 때문에 중심이 어긋난다.
+              파문은 볼 것이 오브뿐인 모드에서만 — 몸 훑기·경행에는 실루엣·발이 있어
+              겹치면 산만해진다. */}
           {(p.engine === 'guided' || p.engine === 'open') && (
-            <div className="vp-ripples">
-              {ripples.map((r) => (
-                <div key={r} className="vp-ripple" />
-              ))}
+            <div className="vp-orb-holder">
+              <div className="vp-ripples">
+                {ripples.map((r) => (
+                  <div key={r} className="vp-ripple" />
+                ))}
+              </div>
+              <div className="vp-orb" style={p.engine === 'open' ? { opacity: 0.55 } : undefined} />
             </div>
           )}
 
-          {p.engine === 'guided' && <GuidedStage timeline={timeline} elapsed={elapsed} />}
+          {p.engine === 'guided' && <GuidedText timeline={timeline} elapsed={elapsed} />}
+          {p.engine === 'open' && <OpenText flash={bellFlash} cue={attitude.cue} />}
           {p.engine === 'scan' && <ScanStage seq={scanSeq} elapsed={elapsed} totalSec={totalSec} cue={attitude.cue} />}
           {p.engine === 'walking' && <WalkingStage practice={p} elapsed={elapsed} beatSec={speed.sec} />}
-          {p.engine === 'open' && <OpenStage flash={bellFlash} cue={attitude.cue} />}
 
           {notingOn && (
             <div className="vp-noting">
@@ -367,14 +372,10 @@ function timelineIndexAt(timeline, sec) {
   return 0
 }
 
-function GuidedStage({ timeline, elapsed }) {
+/* 오브는 홀더가 그리므로 여기서는 안내문만 */
+function GuidedText({ timeline, elapsed }) {
   const idx = timelineIndexAt(timeline, elapsed)
-  return (
-    <>
-      <div className="vp-orb" />
-      <p key={idx} className="vp-guide">{timeline[idx].text}</p>
-    </>
-  )
+  return <p key={idx} className="vp-guide">{timeline[idx].text}</p>
 }
 
 function ScanStage({ seq, elapsed, totalSec, cue }) {
@@ -413,15 +414,10 @@ function WalkingStage({ practice, elapsed, beatSec }) {
   )
 }
 
-function OpenStage({ flash, cue }) {
-  return (
-    <>
-      <div className="vp-orb" style={{ opacity: 0.55 }} />
-      {flash ? (
-        <p className="vp-bell-flash">지금 무엇이 알아차려지고 있나요?</p>
-      ) : (
-        <p className="vp-open-hint">{cue}</p>
-      )}
-    </>
+function OpenText({ flash, cue }) {
+  return flash ? (
+    <p className="vp-bell-flash">지금 무엇이 알아차려지고 있나요?</p>
+  ) : (
+    <p className="vp-open-hint">{cue}</p>
   )
 }

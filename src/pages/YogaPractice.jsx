@@ -246,13 +246,10 @@ export default function YogaPractice() {
   return (
     <div className="page yoga-theme">
       {running && (
-        <>
-          <div
-            className={`yoga-breath-bg ${phaseKind === 'inhale' ? 'is-inhale' : ''} ${phaseKind === 'exhale' ? 'is-exhale' : ''}`}
-            style={stageVars}
-          />
-          <Mandala />
-        </>
+        <div
+          className={`yoga-breath-bg ${phaseKind === 'inhale' ? 'is-inhale' : ''} ${phaseKind === 'exhale' ? 'is-exhale' : ''}`}
+          style={stageVars}
+        />
       )}
 
       <div className="container container--narrow yoga-practice">
@@ -313,16 +310,21 @@ export default function YogaPractice() {
             )}
             {nostril === 'both' && <div className="nostril-guide">양쪽 잠시 멈춤</div>}
 
-            <div className="yoga-ripple-layer">
-              {ripples.map((r) => (
-                <div key={r.id} className="yoga-ripple" style={{ '--ripple-color': r.color }}>
-                  <span /><span /><span />
-                </div>
-              ))}
-            </div>
+            {/* 만다라·물결·오브를 한 홀더에 담아 중심을 일치시킨다 */}
+            <div className="yoga-orb-holder">
+              <Mandala />
 
-            <div className="yoga-orb" style={{ ...stageVars, transform: `scale(${orbScale})` }}>
-              <span>{count}</span>
+              <div className="yoga-ripple-layer">
+                {ripples.map((r) => (
+                  <div key={r.id} className="yoga-ripple" style={{ '--ripple-color': r.color }}>
+                    <span /><span /><span />
+                  </div>
+                ))}
+              </div>
+
+              <div className="yoga-orb" style={{ ...stageVars, transform: `scale(${orbScale})` }}>
+                <span>{count}</span>
+              </div>
             </div>
 
             <div className="yoga-phase-label">{label}</div>

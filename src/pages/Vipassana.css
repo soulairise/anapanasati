@@ -194,16 +194,27 @@
   z-index: 1;
 }
 
-/* 잔잔한 수면 배경 */
+/* 잔잔한 수면 배경 — 중심이 읽히지 않는 균일한 물빛 */
 .vp-water {
   position: fixed;
   inset: 0;
   pointer-events: none;
-  background: radial-gradient(circle at 50% 45%, rgba(107, 123, 148, 0.13), transparent 62%);
+  background: radial-gradient(circle at 50% 50%, rgba(107, 123, 148, 0.11), transparent 70%);
   z-index: 0;
 }
 
-/* 동심원 파문 — 스스로 일어나고 스스로 사라진다 */
+/* 오브와 물결의 중심을 하나로 묶는 홀더
+   (아나빠나사띠의 .orb-holder와 같은 방식) */
+.vp-orb-holder {
+  position: relative;
+  width: 300px;
+  height: 300px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* 동심원 파문 — 홀더의 정중앙 = 오브의 정중앙 */
 .vp-ripples {
   position: absolute;
   top: 50%;
@@ -236,6 +247,7 @@
 */
 .vp-orb {
   position: relative;
+  z-index: 1;            /* 물결 위로 */
   width: 150px;
   height: 150px;
   border-radius: 50%;

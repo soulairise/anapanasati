@@ -160,16 +160,29 @@
 .yoga-breath-bg.is-inhale { opacity: 0.22; }
 .yoga-breath-bg.is-exhale { opacity: 0.07; }
 
-/* 요가 만다라/연꽃 모티프 (은은하게 천천히 회전) */
+/* 오브·물결·만다라의 중심을 하나로 묶는 홀더.
+   홀더 없이 stage 기준 50%로 두면 아래 텍스트·컨트롤 때문에 중심이 어긋난다.
+   (아나빠나사띠의 .orb-holder와 같은 방식) */
+.yoga-orb-holder {
+  position: relative;
+  width: 300px;
+  height: 300px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* 요가 만다라/연꽃 모티프 (은은하게 천천히 회전) — 오브와 같은 중심 */
 .yoga-mandala {
-  position: fixed;
+  position: absolute;
   left: 50%;
-  top: 46%;
-  width: 130vmin;
-  height: 130vmin;
+  top: 50%;
+  /* vw로 상한을 둬 좁은 화면에서 가로 넘침이 생기지 않게 한다 */
+  width: min(86vw, 520px);
+  height: min(86vw, 520px);
   transform: translate(-50%, -50%);
   z-index: 0;
-  opacity: 0.06;
+  opacity: 0.07;
   pointer-events: none;
   animation: yoga-rotate 90s linear infinite;
 }
@@ -178,6 +191,7 @@
 /* 오브 — 페이즈 색이 부드럽게 전환 (solid + 하이라이트 오버레이) */
 .yoga-orb {
   position: relative;
+  z-index: 1;            /* 만다라·물결 위로 */
   overflow: hidden;
   width: 190px;
   height: 190px;
@@ -205,8 +219,16 @@
 }
 .yoga-orb span { position: relative; z-index: 1; }
 
-/* 숨결 물결 리플 (오브 중앙에서 퍼짐) */
-.yoga-ripple-layer { position: absolute; left: 50%; top: 50%; z-index: 0; pointer-events: none; }
+/* 숨결 물결 리플 — 홀더의 정중앙 = 오브의 정중앙 */
+.yoga-ripple-layer {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 0;
+  height: 0;
+  z-index: 0;
+  pointer-events: none;
+}
 .yoga-ripple { position: absolute; left: 0; top: 0; }
 .yoga-ripple span {
   position: absolute;
