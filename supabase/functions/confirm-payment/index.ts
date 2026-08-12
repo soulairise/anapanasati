@@ -20,7 +20,11 @@ const cors = {
 }
 
 // 플랜별 정가(원) — 결제 금액 위변조 방지용 서버 검증
-const PRICE: Record<string, number> = { yearly: 39000, monthly: 4900 }
+// ⚠️ Premium.jsx의 PLANS와 반드시 같은 값을 유지할 것. 어긋나면 결제가 거부된다.
+const PRICE: Record<string, number> = { yearly: 39000, quarterly: 12900, monthly: 4900 }
+
+// 플랜별 이용 기간(개월)
+const MONTHS: Record<string, number> = { yearly: 12, quarterly: 3, monthly: 1 }
 
 function json(body: unknown, status = 200) {
   return new Response(JSON.stringify(body), {
@@ -72,8 +76,7 @@ Deno.serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
     )
     const until = new Date()
-    if (plan === 'yearly') until.setFullYear(until.getFullYear() + 1)
-    else until.setMonth(until.getMonth() + 1)
+    until.setMonth(until.getMonth() + (MONTHS[plan] ?? 1))
 
     const { error: profileError } = await admin.from('profiles').upsert({
       id: user.id,

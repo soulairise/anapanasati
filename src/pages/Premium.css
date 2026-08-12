@@ -103,3 +103,49 @@
   color: var(--clay-deep);
   margin-left: 0.3rem;
 }
+
+/* ---------- 무료 범위 명시 ---------- */
+/* 무엇을 사는지 알고 사게 한다. 무료로 열린 것을 숨기면 신뢰를 잃는다. */
+.free-box {
+  padding: var(--sp-3);
+  border: 1px dashed var(--line);
+  border-radius: var(--radius);
+  background: var(--bg-soft);
+  margin-bottom: var(--sp-2);
+}
+.free-box__title {
+  font-family: var(--font-serif);
+  font-weight: 700;
+  color: var(--sage-deep);
+  margin-bottom: 0.5rem;
+}
+.free-box ul { margin: 0; padding-left: 1.1rem; }
+.free-box li {
+  font-size: 0.9rem;
+  color: var(--ink-soft);
+  line-height: 1.85;
+}
+
+/* ---------- 구독 약관 · 해지 안내 (2025.2.14 규제 대응) ---------- */
+/* 자동갱신·금액·해지를 결제 버튼 바로 옆에 숨김 없이 둔다. */
+.terms-box {
+  margin-top: var(--sp-2);
+  padding: var(--sp-3);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--bg-sunken);
+}
+.terms-box p {
+  font-size: 0.85rem;
+  color: var(--ink-soft);
+  line-height: 1.8;
+  margin-bottom: 0.6rem;
+}
+.terms-box p:last-child { margin-bottom: 0; }
+.terms-box b { color: var(--ink); }
+.terms-box a { color: var(--sage-deep); border-bottom: 1px solid var(--sage); }
+.terms-box__cancel {
+  padding-top: 0.6rem;
+  border-top: 1px solid var(--line);
+}
+.terms-box__aid { color: var(--ink-faint); font-style: italic; }

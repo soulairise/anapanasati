@@ -6,8 +6,6 @@ import { sessionsApi, computeStats } from '../lib/store'
 import { getStage } from '../data/stages'
 import { formatDuration, formatDate } from '../lib/format'
 
-const SEVEN_DAYS = 7 * 24 * 60 * 60 * 1000
-
 export default function Journal() {
   const { user } = useAuth()
   const { isPremium } = usePremium()
@@ -25,12 +23,11 @@ export default function Journal() {
 
   const stats = computeStats(sessions)
 
-  // 무료: 최근 7일 기록만 열람 (프리미엄은 전체)
-  const now = Date.now()
-  const visible = isPremium
-    ? sessions
-    : sessions.filter((s) => now - new Date(s.created_at).getTime() <= SEVEN_DAYS)
-  const hiddenCount = sessions.length - visible.length
+  // 기록은 전부 열람 무료.
+  // 자기 기록을 잃는 느낌은 강한 불만으로 이어지고, 리텐션 장치를 유료화하면
+  // 무료 사용자가 습관을 못 만들어 전환 대상 자체가 사라진다.
+  // 프리미엄은 기록이 아니라 "해석"(히트맵·추세·검색)을 판다. — docs/PRODUCT_STRATEGY.md 6-2
+  const visible = sessions
 
   return (
     <div className="page">
@@ -100,15 +97,16 @@ export default function Journal() {
               )
             })}
 
-            {hiddenCount > 0 && (
+            {/* 기록을 잠그지 않는다. 대신 "해석"을 제안한다. */}
+            {!isPremium && sessions.length >= 5 && (
               <div
                 className="card"
                 style={{ padding: '1.25rem', textAlign: 'center', cursor: 'pointer', marginTop: '0.5rem' }}
                 onClick={() => navigate('/premium')}
               >
-                🔒 지난 <b>{hiddenCount}개</b>의 기록이 더 있어요 —{' '}
+                기록이 <b>{sessions.length}개</b> 쌓였습니다 —{' '}
                 <span style={{ color: 'var(--clay-deep)', fontWeight: 500 }}>
-                  프리미엄에서 전체 보기
+                  히트맵·추세로 되돌아보기
                 </span>
               </div>
             )}
