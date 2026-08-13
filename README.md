@@ -67,3 +67,13 @@ src/
 현재 `src/lib/store.js`가 DB·Auth 역할을 대신합니다.
 Supabase 연동 시 이 파일의 `auth`·`sessionsApi` 함수 내부만 Supabase 호출로 교체하면
 화면 코드는 그대로 동작하도록 설계했습니다.
+
+---
+
+## 저작권
+
+**Copyright © 2026 소울매트 · 김만영. All rights reserved.**
+
+이 저장소의 소스와 콘텐츠는 저작권 보호를 받습니다.
+서면 허락 없이 복제·배포·2차적저작물 작성·상업적 이용·기계학습 데이터 수집을 금합니다.
+자세한 내용은 [LICENSE](LICENSE) 를 보세요.
