@@ -1,14 +1,32 @@
 // ============================================================
 // 음성 안내 (녹음 파일 재생)
 // Web Speech(TTS)는 기기·브라우저 편차가 커서 소리가 안 나는 경우가 많아,
-// 실제 녹음 음성(inhale/hold/exhale, m4a)을 재생한다 → 모든 기기에서 안정적.
+// 실제 음성 파일을 재생한다 → 모든 기기에서 안정적.
+//
+// 한국어 앱에서 영어 "inhale/hold/exhale"이 나오면 몰입이 깨진다.
+// 한국어 음성(ko-*.mp3)이 있으면 그걸 쓰고, 아직 없으면 기존 영어로 폴백한다.
+// 한국어 음성 생성: node scripts/gen-narration.mjs
+// (나중에 직접 녹음한 파일로 교체하면 코드 변경 없이 그대로 바뀐다)
 // ============================================================
 
 import inhaleUrl from '../assets/audio/inhale.mp3'
 import holdUrl from '../assets/audio/hold.mp3'
 import exhaleUrl from '../assets/audio/exhale.mp3'
 
-const SOURCES = { inhale: inhaleUrl, hold: holdUrl, exhale: exhaleUrl }
+// Vite: 없는 파일을 import하면 빌드가 깨지므로 glob으로 "있으면 쓴다"를 구현한다.
+const koFiles = import.meta.glob('../assets/audio/ko-*.mp3', { eager: true, query: '?url', import: 'default' })
+const ko = (name) => koFiles[`../assets/audio/ko-${name}.mp3`]
+
+export const isKorean = Boolean(ko('inhale') && ko('hold') && ko('exhale'))
+
+const SOURCES = isKorean
+  ? { inhale: ko('inhale'), hold: ko('hold'), exhale: ko('exhale') }
+  : { inhale: inhaleUrl, hold: holdUrl, exhale: exhaleUrl }
+
+// 화면 안내 문구에 쓸 실제 발화 내용
+export const SPOKEN = isKorean
+  ? { inhale: '들이쉽니다', hold: '머뭅니다', exhale: '내쉽니다' }
+  : { inhale: 'inhale', hold: 'hold', exhale: 'exhale' }
 const cache = {}
 
 function getAudio(word) {

@@ -6,7 +6,7 @@ import { getAudioContext, INHALE_FREQ, EXHALE_FREQ } from '../lib/bowl'
 import { playBreathTone } from '../lib/breathTone'
 import { useWakeLock, wakeLockSupported } from '../lib/useWakeLock'
 import { createAmbient } from '../lib/ambient'
-import { speak, stopNarration, primeNarration, PHASE_WORDS } from '../lib/narration'
+import { speak, stopNarration, primeNarration, PHASE_WORDS, SPOKEN } from '../lib/narration'
 import './Breathe.css'
 
 // 호흡 패턴: [들숨, 멈춤, 날숨, 멈춤] (초)
@@ -375,7 +375,7 @@ export default function Breathe() {
             </div>
             {narrationOn && (
               <p className="faint text-center" style={{ fontSize: '0.82rem', marginTop: '0.6rem' }}>
-                들숨·멈춤·날숨에 “inhale · hold · exhale” 음성이 안내됩니다
+                들숨·멈춤·날숨에 “{SPOKEN.inhale} · {SPOKEN.hold} · {SPOKEN.exhale}” 음성이 안내됩니다
               </p>
             )}
 
