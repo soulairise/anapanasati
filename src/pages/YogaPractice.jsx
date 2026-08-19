@@ -84,6 +84,9 @@ export default function YogaPractice() {
 
   const timerRef = useRef(null)
   const stoppedRef = useRef(false)
+  // pulsed 모드는 setTimeout 체인이라 초 카운터가 없다. 두 모드 모두에서
+  // 정확한 수행 시간을 얻으려면 시작 시각을 기준으로 재는 편이 안전하다.
+  const startedAtRef = useRef(0)
   const soundRef = useRef(null)
   const soundOnRef = useRef(soundOn)
   soundOnRef.current = soundOn
@@ -137,6 +140,7 @@ export default function YogaPractice() {
     getAudioContext() // 제스처 시점 오디오 활성화
     setRunning(true)
     setElapsed(0)
+    startedAtRef.current = Date.now()
     if (mode === 'pulsed') runPulsed()
     else runPaced()
   }
@@ -153,7 +157,20 @@ export default function YogaPractice() {
   const finish = () => {
     stop()
     if (mode === 'pulsed') bumpDoneCount(id) // 완주해야 다음 라운드가 열린다
-    navigate(`/yoga/${id}`)
+    // 수행일지로. 너무 짧은 세션(30초 미만)은 기록할 게 없어 상세로 돌아간다.
+    const sec = startedAtRef.current ? (Date.now() - startedAtRef.current) / 1000 : 0
+    if (sec < 30) {
+      navigate(`/yoga/${id}`)
+      return
+    }
+    navigate('/complete', {
+      state: {
+        track: 'yoga',
+        practice: id,
+        duration_sec: Math.round(sec),
+        breath_pattern: t.ratio || '',
+      },
+    })
   }
 
   // 어지러움·숨가쁨은 즉시 중단이 원칙이다. 세션 중 항상 손에 닿는 곳에 둔다.

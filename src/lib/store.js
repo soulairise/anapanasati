@@ -110,7 +110,11 @@ export const sessionsApi = {
     const row = {
       user_id: userId,
       duration_sec: d.duration_sec ?? 0,
-      stage: d.stage ?? 1,
+      // 갈래 구분. 기본은 아나빠나사띠 — 기존 기록과 호환된다.
+      track: d.track ?? 'anapanasati',
+      practice: d.practice ?? '',
+      // stage는 아나빠나사띠 전용. 다른 갈래는 0으로 둔다.
+      stage: d.stage ?? (d.track && d.track !== 'anapanasati' ? 0 : 1),
       breath_pattern: d.breath_pattern ?? '',
       focus_score: d.focus_score ?? 3,
       note: d.note ?? '',

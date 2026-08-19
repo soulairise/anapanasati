@@ -83,6 +83,40 @@
 
 ## 작업 기록
 
+### 2026-08-19 — DONE (수행일지 3갈래 연동)
+그동안 요가·관찰 수행은 마쳐도 기록이 남지 않았다. 홈에 목적별 진입로를 만들어
+유입을 늘려놨는데 돌아올 이유가 없으면 새는 구조라, 이걸 먼저 막았다.
+
+**DB (production 마이그레이션 적용됨)**
+- `sessions`에 `track`(anapanasati|yoga|vipassana), `practice`(실습 id) 추가.
+  추가 전용이라 기존 4개 행은 default로 'anapanasati'가 되어 그대로 유효. 실측 확인함.
+- `sessions_user_track_created_idx` 인덱스 추가. `supabase/schema.sql`도 동기화.
+- ⚠️ `stage`는 아나빠나사띠 전용이라 다른 갈래는 0으로 넣는다(store.js에서 처리).
+
+**신규: `src/lib/tracks.js`**
+- `describeSession(row)` → `{track, title, detail, backTo}`. 화면마다 if문으로 갈래를
+  분기하면 금방 흩어지므로 "기록 한 줄 → 표시용 정보" 변환을 한 곳에 모았다.
+  갈래가 늘어도 이 파일만 고치면 된다.
+
+**연동**
+- `YogaPractice.finish()` → `/complete`로. 30초 미만은 기록할 게 없어 상세로 돌려보낸다.
+  ⚠️ pulsed 모드는 setTimeout 체인이라 초 카운터가 없어서, 두 모드 모두 `startedAtRef`
+  (시작 시각) 기준으로 경과를 잰다.
+- `VipassanaSession` → 마무리 화면에 **일지에 남기기** / 기록하지 않고 나가기.
+  관찰 수행은 마친 여운이 중요해서 곧바로 기록으로 밀지 않고 선택하게 했다.
+- `SessionComplete`·`Journal`·`JournalDetail`이 모두 `describeSession`을 쓰도록 교체.
+  일지 목록·상세에 갈래 태그(🫧/🌀/💧) 표시. `.track-tag` 스타일 추가.
+
+**검증**
+- 관찰 수행 → "💧 관찰 수행 · 숨의 일어남과 사라짐 · 신념처" 표시 확인
+- 요가 1분 → "🌀 요가 호흡 · 복식호흡 · Diaphragmatic" 표시 확인
+- 요가 30초 미만 → 상세로 복귀 확인
+- DB: 트랜잭션 롤백으로 insert 검증(track/practice/stage 정상 수용), 테스트 행 미잔류(총 4행 유지)
+- 빌드 성공, 새 탭 콘솔 에러 0
+  (기존 탭의 useAuth null 에러는 Vite HMR이 컨텍스트 모듈을 교체할 때 생기는 개발 전용 현상)
+
+**남은 것**: 로그인 상태의 실제 저장은 대표님 계정으로 확인 필요(제가 로그인할 수 없음).
+
 ### 2026-08-09 — DONE (기본 호흡수 교정 · 프라나야마 안전 게이트)
 > 근거: 호흡명상 UX 리서치. 5개 제안 중 1·2순위로 판단한 것을 먼저 적용.
 

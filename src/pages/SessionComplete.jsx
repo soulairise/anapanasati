@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useLocation, useNavigate, Link } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { sessionsApi } from '../lib/store'
-import { getStage } from '../data/stages'
+import { describeSession } from '../lib/tracks'
 import { formatDuration } from '../lib/format'
 
 export default function SessionComplete() {
@@ -21,16 +21,17 @@ export default function SessionComplete() {
       <div className="page container container--narrow text-center">
         <div className="empty-state">
           <div className="icon">🫧</div>
-          <p>먼저 호흡 수행을 진행해 주세요.</p>
-          <Link to="/breathe" className="btn btn--primary" style={{ marginTop: '1rem' }}>
-            호흡하러 가기
+          <p>먼저 수행을 진행해 주세요.</p>
+          <Link to="/" className="btn btn--primary" style={{ marginTop: '1rem' }}>
+            수련 고르러 가기
           </Link>
         </div>
       </div>
     )
   }
 
-  const stage = getStage(state.stage)
+  // 갈래마다 제목·부제가 다르다. 해석은 lib/tracks.js 한 곳에서.
+  const info = describeSession(state)
 
   const handleSave = async () => {
     if (!user) {
@@ -63,7 +64,8 @@ export default function SessionComplete() {
             {formatDuration(state.duration_sec)}의 고요함
           </h1>
           <p className="muted">
-            {state.stage}단계 · {stage?.title_ko} · 패턴 {state.breath_pattern}
+            {info.track.icon} {info.track.label} · {info.title}
+            {info.detail ? ` · ${info.detail}` : ''}
           </p>
         </div>
 
@@ -94,7 +96,7 @@ export default function SessionComplete() {
             <label>수행 소감 (선택)</label>
             <textarea
               className="textarea"
-              placeholder="호흡을 하며 무엇을 알아차렸나요? 몸과 마음은 어땠나요?"
+              placeholder="무엇을 알아차렸나요? 몸과 마음은 어땠나요?"
               value={note}
               onChange={(e) => setNote(e.target.value)}
             />
@@ -108,10 +110,10 @@ export default function SessionComplete() {
           <button
             className="btn btn--ghost btn--block"
             style={{ marginTop: '0.75rem' }}
-            onClick={() => navigate('/breathe')}
+            onClick={() => navigate(info.backTo)}
             disabled={saving}
           >
-            기록하지 않고 다시 호흡하기
+            기록하지 않고 돌아가기
           </button>
         </div>
       </div>

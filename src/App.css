@@ -257,3 +257,18 @@
   gap: var(--sp-1);
   align-items: center;
 }
+
+/* 수행일지 — 갈래 태그 (아나빠나사띠 · 요가 · 관찰) */
+.track-tag {
+  display: inline-block;
+  margin-right: 0.45rem;
+  padding: 0.15rem 0.55rem;
+  border-radius: 999px;
+  background: var(--bg-sunken);
+  color: var(--ink-soft);
+  font-family: var(--font-sans);
+  font-size: 0.72rem;
+  font-weight: 500;
+  vertical-align: middle;
+  white-space: nowrap;
+}

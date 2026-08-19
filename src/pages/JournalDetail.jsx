@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import { sessionsApi } from '../lib/store'
-import { getStage } from '../data/stages'
+import { describeSession } from '../lib/tracks'
 import { formatDuration, formatDate } from '../lib/format'
 
 export default function JournalDetail() {
@@ -38,7 +38,7 @@ export default function JournalDetail() {
     )
   }
 
-  const stage = getStage(session.stage)
+  const info = describeSession(session)
 
   const handleUpdate = async () => {
     setBusy(true)
@@ -65,10 +65,12 @@ export default function JournalDetail() {
         <div className="card" style={{ padding: '2rem' }}>
           <p className="eyebrow">{formatDate(session.created_at)}</p>
           <h1 style={{ fontSize: '1.6rem', margin: '0.5rem 0' }}>
-            {session.stage}. {stage?.title_ko}
+            <span className="track-tag">{info.track.icon} {info.track.label}</span>
+            {info.title}
           </h1>
           <p className="muted">
-            {formatDuration(session.duration_sec)} · 패턴 {session.breath_pattern}
+            {formatDuration(session.duration_sec)}
+            {info.detail ? ` · ${info.detail}` : ''}
           </p>
 
           <hr className="divider" />

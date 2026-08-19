@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { usePremium } from '../context/PremiumContext'
 import { sessionsApi, computeStats } from '../lib/store'
-import { getStage } from '../data/stages'
+import { describeSession } from '../lib/tracks'
 import { formatDuration, formatDate } from '../lib/format'
 
 export default function Journal() {
@@ -63,15 +63,15 @@ export default function Journal() {
         ) : sessions.length === 0 ? (
           <div className="empty-state">
             <div className="icon">🕯️</div>
-            <p>아직 기록이 없습니다.<br />첫 호흡 수행을 시작해 보세요.</p>
-            <Link to="/breathe" className="btn btn--primary" style={{ marginTop: '1rem' }}>
-              호흡하러 가기
+            <p>아직 기록이 없습니다.<br />첫 수행을 시작해 보세요.</p>
+            <Link to="/" className="btn btn--primary" style={{ marginTop: '1rem' }}>
+              수련 고르러 가기
             </Link>
           </div>
         ) : (
           <div>
             {visible.map((s) => {
-              const stage = getStage(s.stage)
+              const info = describeSession(s)
               return (
                 <div
                   key={s.id}
@@ -80,7 +80,10 @@ export default function Journal() {
                 >
                   <div>
                     <div className="session-item__stage">
-                      {s.stage}. {stage?.title_ko}
+                      <span className="track-tag" title={info.track.label}>
+                        {info.track.icon} {info.track.label}
+                      </span>
+                      {info.title}
                     </div>
                     <div className="session-item__date">{formatDate(s.created_at)}</div>
                     {s.note && (

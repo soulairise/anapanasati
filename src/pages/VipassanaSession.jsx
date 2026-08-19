@@ -129,6 +129,19 @@ export default function VipassanaSession() {
     setPhase('done')
   }
 
+  // 마무리 화면에서 기록으로. 관찰 수행은 "마쳤다"는 여운이 중요해서
+  // 곧바로 기록 화면으로 밀지 않고, 마무리 문구를 본 뒤 선택하게 한다.
+  const goRecord = () => {
+    navigate('/complete', {
+      state: {
+        track: 'vipassana',
+        practice: id,
+        duration_sec: Math.round(Math.min(elapsed, totalSec)),
+        breath_pattern: '',
+      },
+    })
+  }
+
   const start = () => {
     getAudioContext() // 사용자 제스처 시점에 오디오 활성화
     // 이전 화면의 스크롤이 남아 수행 화면이 잘려 보이지 않도록.
@@ -301,7 +314,12 @@ export default function VipassanaSession() {
             </p>
             <div className="breathe-controls" style={{ marginTop: '1.5rem' }}>
               <button className="btn btn--ghost" onClick={() => setPhase('setup')}>한 번 더</button>
-              <button className="btn btn--primary" onClick={() => navigate('/vipassana')}>마치기</button>
+              <button className="btn btn--primary" onClick={goRecord}>일지에 남기기</button>
+            </div>
+            <div className="text-center" style={{ marginTop: '0.9rem' }}>
+              <button className="faint" onClick={() => navigate('/vipassana')}>
+                기록하지 않고 나가기
+              </button>
             </div>
           </div>
         </div>
