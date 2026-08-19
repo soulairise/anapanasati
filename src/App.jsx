@@ -25,6 +25,8 @@ import MettaDetail from './pages/MettaDetail'
 import MettaSession from './pages/MettaSession'
 import Mbsr from './pages/Mbsr'
 import MbsrWeek from './pages/MbsrWeek'
+import Legal from './pages/Legal'
+import SiteFooter from './components/SiteFooter'
 import './App.css'
 
 // 로그인 필요한 라우트 보호
@@ -58,6 +60,7 @@ export default function App() {
           <Route path="/metta/:id/practice" element={<MettaSession />} />
           <Route path="/mbsr" element={<Mbsr />} />
           <Route path="/mbsr/week/:n" element={<MbsrWeek />} />
+          <Route path="/legal/:slug" element={<Legal />} />
           <Route path="/complete" element={<SessionComplete />} />
           <Route path="/login" element={<Login />} />
           <Route path="/premium" element={<Premium />} />
@@ -82,13 +85,7 @@ export default function App() {
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </main>
-      <footer className="site-footer">
-        <div className="container">
-          <p className="faint">
-            숨결의 길 · Ānāpānasati Path — 들숨과 날숨, 그 사이의 알아차림
-          </p>
-        </div>
-      </footer>
+      <SiteFooter />
     </>
   )
 }

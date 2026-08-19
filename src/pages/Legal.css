@@ -1,0 +1,102 @@
+/* ============================================================
+   법정 고지 문서 — 읽기 쉬운 것이 준수의 일부다.
+   글자가 작거나 표가 넘치면 "쉽게 알 수 있는 곳에 명확하게 표시"가 아니게 된다.
+   ============================================================ */
+.legal { padding-bottom: var(--sp-5); }
+.legal__section { margin-bottom: var(--sp-4); }
+.legal__section h2 {
+  font-size: 1.1rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--line);
+  margin-bottom: var(--sp-2);
+}
+/* 건강 고지·환불·국외이전처럼 놓치면 안 되는 조항 */
+.legal__section.is-emphasis {
+  padding: var(--sp-3);
+  background: var(--bg-soft);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+}
+.legal__section.is-emphasis h2 { border-bottom-color: var(--sage); }
+
+.legal__list { padding-left: 1.3rem; }
+.legal__list li {
+  color: var(--ink-soft);
+  line-height: 1.9;
+  margin-bottom: 0.5rem;
+  font-size: 1rem; /* 본문 16px 이상 유지 */
+}
+
+/* 표는 좁은 화면에서 자기 안에서만 가로 스크롤한다 */
+.legal__table-wrap {
+  overflow-x: auto;
+  margin-bottom: var(--sp-2);
+  -webkit-overflow-scrolling: touch;
+}
+.legal__table {
+  width: 100%;
+  min-width: 30rem;
+  border-collapse: collapse;
+  font-size: 0.92rem;
+}
+.legal__table th,
+.legal__table td {
+  padding: 0.6rem 0.7rem;
+  border: 1px solid var(--line);
+  text-align: left;
+  vertical-align: top;
+  line-height: 1.7;
+}
+.legal__table th { background: var(--bg-sunken); font-weight: 600; }
+.legal__table td { color: var(--ink-soft); }
+
+.legal__biz { list-style: none; padding: 0; }
+.legal__biz li {
+  display: flex;
+  gap: var(--sp-2);
+  padding: 0.45rem 0;
+  border-bottom: 1px solid var(--line);
+  font-size: 0.95rem;
+}
+.legal__biz span { flex: 0 0 8rem; color: var(--ink-faint); }
+.legal__biz b { color: var(--ink); font-weight: 500; }
+
+.legal__nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-3);
+  justify-content: center;
+  padding-top: var(--sp-3);
+  border-top: 1px solid var(--line);
+}
+
+/* ---------- 푸터 ---------- */
+.site-footer__tagline { font-size: 0.85rem; }
+.site-footer__links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-2);
+  justify-content: center;
+  margin-top: var(--sp-2);
+  font-size: 0.85rem;
+}
+.site-footer__links a { color: var(--ink-soft); }
+.site-footer__links a:hover { color: var(--ink); }
+.site-footer__links b { font-weight: 600; } /* 처리방침은 법정 강조 대상 */
+
+.site-footer__biz {
+  margin-top: var(--sp-2);
+  text-align: center;
+  font-size: 0.78rem;
+  color: var(--ink-faint);
+}
+.site-footer__biz > summary { cursor: pointer; list-style: none; }
+.site-footer__biz > summary::-webkit-details-marker { display: none; }
+.site-footer__biz > summary::after { content: ' ▾'; }
+.site-footer__biz[open] > summary::after { content: ' ▴'; }
+.site-footer__biz p { margin-top: 0.5rem; line-height: 1.9; }
+
+@media (max-width: 640px) {
+  .legal__biz li { flex-direction: column; gap: 2px; }
+  .legal__biz span { flex: none; font-size: 0.82rem; }
+}
