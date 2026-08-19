@@ -52,10 +52,13 @@ export async function startBreathMic({ onLevel, onError }) {
       },
     })
   } catch (e) {
+    // 한 번 거부하면 브라우저가 다시 묻지 않는다. 복구 방법을 알려줘야 한다.
     onError?.(
       e?.name === 'NotAllowedError'
-        ? '마이크 권한이 필요합니다. 허용하지 않으셔도 수행은 그대로 진행됩니다.'
-        : '마이크를 열 수 없습니다. 수행은 그대로 진행됩니다.',
+        ? '마이크가 차단돼 있습니다. 주소창의 자물쇠(또는 ⓘ) → 마이크 → 허용으로 바꾼 뒤 새로고침해 주세요.'
+        : e?.name === 'NotFoundError'
+          ? '사용할 수 있는 마이크를 찾지 못했습니다.'
+          : '마이크를 열 수 없습니다. 수행은 그대로 진행됩니다.',
     )
     return { stop: () => {}, calibrating: () => false }
   }
@@ -81,6 +84,9 @@ export async function startBreathMic({ onLevel, onError }) {
   let raf = 0
   let stopped = false
   let smooth = 0
+  // 참고: rAF는 탭이 가려지면 멈춘다. 화면이 꺼지거나 앱을 전환하면 감지도 멈추는데,
+  // 어차피 그때는 화면을 볼 수 없으므로 의도된 동작이다(배터리도 아낀다).
+  // 돌아오면 자동으로 다시 돈다 — 보정값은 유지된다.
 
   const readBand = () => {
     analyser.getByteFrequencyData(bins)

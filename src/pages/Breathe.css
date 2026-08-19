@@ -203,3 +203,48 @@
 @media (prefers-reduced-motion: reduce) {
   .breathe-stage { transition: opacity 0.4s linear; }
 }
+
+/* ---------- 마이크 반응 ---------- */
+/*
+  ⚠️ .breath-orb에는 transition: transform 4~6초가 걸려 있다(호흡 페이즈용).
+  거기에 마이크 값을 얹으면 60fps 변화가 전부 뭉개져 절대 반응이 보이지 않는다.
+  그래서 반응은 전환이 걸리지 않은 별도 링으로 분리한다.
+*/
+.breath-mic-ring {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 210px;
+  height: 210px;
+  margin: -105px 0 0 -105px;
+  border-radius: 50%;
+  border: 2px solid var(--phase-color, #8a9a82);
+  pointer-events: none;
+  z-index: 0;
+  /* --mic 0~1 → 크기와 진하기가 즉각 따라간다 */
+  transform: scale(calc(0.82 + var(--mic, 0) * 0.5));
+  opacity: calc(0.12 + var(--mic, 0) * 0.65);
+  transition: transform 90ms linear, opacity 90ms linear;
+}
+
+/* 시작 전 확인용 레벨 미터 */
+.mic-test { max-width: 20rem; margin: 0.7rem auto 0; }
+.mic-test__bar {
+  height: 8px;
+  border-radius: 999px;
+  background: var(--bg-sunken);
+  overflow: hidden;
+}
+.mic-test__fill {
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--sage), var(--sage-deep));
+  transition: width 90ms linear;
+}
+.mic-test__label {
+  margin-top: 0.45rem;
+  font-size: 0.8rem;
+  color: var(--ink-faint);
+  text-align: center;
+  line-height: 1.65;
+}

@@ -101,9 +101,11 @@ export default function Breathe() {
   // 화면이 잠기면 iOS는 Web Audio를 죽인다. 눈감기 모드와 한 세트다.
   useWakeLock(running)
 
-  // 마이크는 수행 중에만 연다. 끝나면 트랙을 반드시 닫는다(권한 표시가 남지 않게).
+  // 마이크는 토글이 켜져 있는 동안 연다 — 준비 화면에서도.
+  // 수행 중에만 열면 "켰는데 아무 반응이 없다"가 되고, 실제로 잡히는지 확인할 방법이 없다.
+  // 끄거나 화면을 떠나면 트랙을 반드시 닫는다(권한 표시가 남지 않게).
   useEffect(() => {
-    if (!running || !micOn) {
+    if (!micOn) {
       if (micRef.current) {
         micRef.current.stop()
         micRef.current = null
@@ -142,8 +144,11 @@ export default function Breathe() {
         micRef.current = null
       }
     }
+    // ⚠️ running을 의존성에 두면 수행 시작 때 마이크가 한 번 닫혔다 다시 열린다.
+    // 그러면 3초 보정을 처음부터 다시 하느라 세션 초반이 통째로 죽는다.
+    // 마이크는 토글만 따라간다.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [running, micOn])
+  }, [micOn])
 
   // 배경음 시작 (파도/모닥불 랜덤)
   const startAmbient = () => {
@@ -436,7 +441,10 @@ export default function Breathe() {
                 <div className="setting-row" style={{ marginTop: '1rem', justifyContent: 'center' }}>
                   <button
                     className={`sound-toggle ${micOn ? '' : 'is-off'}`}
-                    onClick={() => setMicOn((v) => !v)}
+                    onClick={() => {
+                      setMicNote('') // 이전 시도의 오류 문구가 남아 혼란을 준다
+                      setMicOn((v) => !v)
+                    }}
                   >
                     {micOn ? '🎤 내 날숨에 반응' : '🎤 마이크 끔'}
                   </button>
@@ -448,7 +456,21 @@ export default function Breathe() {
                     <br />조용한 코호흡은 잘 안 잡힙니다. 블루투스 이어폰보다 기기 마이크가 낫습니다.
                   </p>
                 )}
-                {micNote && (
+                {micOn && (
+                  <div className="mic-test">
+                    <div className="mic-test__bar">
+                      <div className="mic-test__fill" style={{ width: `${Math.round(micLevel * 100)}%` }} />
+                    </div>
+                    <p className="mic-test__label">
+                      {micNote
+                        ? micNote
+                        : micLevel > 0.15
+                          ? '✔ 잡힙니다 — 이대로 시작하세요'
+                          : '지금 "후—" 하고 내쉬어 보세요. 막대가 움직이면 준비된 겁니다'}
+                    </p>
+                  </div>
+                )}
+                {!micOn && micNote && (
                   <p className="faint text-center" style={{ fontSize: '0.8rem', marginTop: '0.4rem' }}>{micNote}</p>
                 )}
               </>
@@ -493,15 +515,19 @@ export default function Breathe() {
                     </div>
                   ))}
                 </div>
+                {/* 마이크 반응 링 — 오브의 4~6초 전환과 분리해야 실제로 반응이 보인다 */}
+                {micOn && (
+                  <div
+                    className="breath-mic-ring"
+                    style={{ '--mic': micLevel }}
+                    aria-hidden="true"
+                  />
+                )}
                 <div
                   className="breath-orb"
                   style={{
                     ...stageVars,
-                    // 마이크가 켜져 있고 날숨 구간이면 실제 숨 세기를 얹는다.
-                    // 타이머는 그대로 두고 "반응"만 더한다 — 감지가 실패해도 수행은 안 끊긴다.
-                    transform: `scale(${
-                      micOn && phaseIdx === 2 ? orbScale + micLevel * 0.22 : orbScale
-                    })`,
+                    transform: `scale(${orbScale})`,
                   }}
                 >
                   <span>{preparing ? '' : phaseRemain}</span>
