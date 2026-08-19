@@ -1,4 +1,6 @@
-import { Link, useNavigate } from 'react-router-dom'
+import { useEffect, useState } from 'react'
+import { Link, useNavigate, useLocation } from 'react-router-dom'
+import { resolveFace, storeFace } from '../lib/face'
 import './Home.css'
 
 /*
@@ -29,23 +31,86 @@ const PATHS = [
   { icon: '💧', name: '관찰 수행', sub: '있는 그대로 보기', count: '6가지 실습', to: '/vipassana' },
 ]
 
+// 첫 화면의 두 얼굴. 구조는 같고 온도만 다르다.
+//
+// 들숨은 시작이다 — 아기가 세상에 나와 처음 한 일은 우는 것이 아니라
+// 숨을 들이는 것이다(폐가 양수로 차 있어 강한 흡기로 열어야 한다).
+// 날숨은 놓음이다 — 우리 기본 패턴이 4-0-6-0으로 날숨을 길게 두는 이유이기도 하다.
+//
+// ⚠️ "사람은 들숨으로 태어나 날숨으로 죽는다"고 쓰지 않는다.
+//    앞쪽은 사실이지만 뒤쪽은 단정할 수 없다(임종기에는 들이쉬는 헐떡임이 먼저 온다).
+//    사별을 겪은 분이 읽는다.
+const FACE_COPY = {
+  sun: {
+    eyebrow: '하루 3분, 숨을 지켜보는 훈련',
+    title: (
+      <>
+        들숨과 날숨,
+        <br />그 사이에 머무르다
+      </>
+    ),
+    sub: '잠들기 어려운 밤, 불안하고 산만한 마음을 위한 호흡 훈련. 2,500년 된 순서를 한국어로, 하루 한 걸음씩.',
+    note: '생은 들이쉬는 것으로 시작합니다. 세상에 나와 처음 한 일은 우는 것이 아니라, 숨을 들이는 것이었습니다.',
+    cta: '지금 3분 호흡하기',
+  },
+  moon: {
+    eyebrow: '오늘을 내려놓는 시간',
+    title: (
+      <>
+        길게 내쉬면,
+        <br />몸이 먼저 알아차립니다
+      </>
+    ),
+    sub: '잠들기 어려운 밤을 위한 호흡. 들이쉬는 것보다 길게 내쉬면 몸이 쉬는 쪽으로 기웁니다. 3분이면 됩니다.',
+    note: '하루 종일 쥐고 있던 것을, 한 번의 긴 날숨에 놓아 봅니다.',
+    cta: '지금 3분 내쉬기',
+  },
+}
+
 export default function Home() {
   const navigate = useNavigate()
+  const { search } = useLocation()
+  const [face, setFace] = useState(() => resolveFace(search))
+  const copy = FACE_COPY[face]
+
+  // 얼굴은 홈에서만 붙인다. 나갈 때 반드시 뗀다 —
+  // 안 떼면 안쪽 화면이 어두운 팔레트를 물려받는데, 그쪽은 색을 맞춰두지 않았다.
+  useEffect(() => {
+    const root = document.documentElement
+    if (face === 'moon') root.setAttribute('data-face', 'moon')
+    else root.removeAttribute('data-face')
+    return () => root.removeAttribute('data-face')
+  }, [face])
+
+  const toggleFace = () => {
+    const next = face === 'moon' ? 'sun' : 'moon'
+    setFace(next)
+    storeFace(next)
+  }
 
   return (
     <div className="page">
       <div className="container">
         <section className="hero">
-          <p className="eyebrow">하루 3분, 숨을 지켜보는 훈련</p>
-          <h1 className="hero__title">
-            들숨과 날숨,<br />그 사이에 머무르다
-          </h1>
-          <p className="hero__sub">
-            잠들기 어려운 밤, 불안하고 산만한 마음을 위한 호흡 훈련.
-            2,500년 된 순서를 한국어로, 하루 한 걸음씩.
-          </p>
+          <button
+            type="button"
+            className="face-toggle"
+            onClick={toggleFace}
+            aria-pressed={face === 'moon'}
+            title={face === 'moon' ? '해의 얼굴로 보기' : '달의 얼굴로 보기'}
+          >
+            <span aria-hidden="true">{face === 'moon' ? '🌙' : '☀️'}</span>
+            <span className="face-toggle__text">
+              {face === 'moon' ? '달' : '해'}
+            </span>
+          </button>
+
+          <p className="eyebrow">{copy.eyebrow}</p>
+          <h1 className="hero__title">{copy.title}</h1>
+          <p className="hero__sub">{copy.sub}</p>
+          <p className="hero__note">{copy.note}</p>
           <div className="hero__cta">
-            <Link to="/breathe" className="btn btn--primary">지금 3분 호흡하기</Link>
+            <Link to="/breathe" className="btn btn--primary">{copy.cta}</Link>
             <Link to="/learn" className="btn btn--ghost">16일 여정 보기</Link>
           </div>
         </section>

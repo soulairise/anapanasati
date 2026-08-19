@@ -17,7 +17,10 @@
   --clay:        #bfa38a;   /* 클레이 포인트 */
   --clay-deep:   #a6866a;
   --white:       #ffffff;
+  /* 상단 바의 반투명 배경. 색을 직접 박아 두면 달 얼굴에서 밝은 띠로 남는다. */
+  --bg-blur:     rgba(246, 244, 239, 0.82);
 
+  /* 얼굴 — 해가 기본값. 달은 아래 [data-face="moon"] 에서 갈아끼운다. */
   /* 타이포 */
   --font-serif: 'Gowun Batang', serif;
   --font-sans:  'Noto Sans KR', system-ui, sans-serif;
@@ -39,6 +42,49 @@
   /* 모션 */
   --ease: cubic-bezier(0.4, 0, 0.2, 1);
 }
+/* 한국어는 단어 중간에서 끊으면 안 된다.
+   기본값(break-word)은 "알아차립니 / 다" 처럼 잘라 놓는다.
+   keep-all 은 어절 단위로만 끊는다. 제목처럼 큰 글자에서 특히 티가 난다. */
+h1, h2, h3, .hero__title, .hero__sub, .hero__note,
+.goal__label, .goal__hint, .btn {
+  word-break: keep-all;
+  overflow-wrap: anywhere; /* 그래도 한 어절이 칸보다 길면 넘치지 않게 */
+}
+
+/* ============================================================
+   달 얼굴 — 밤에 오는 사람은 잠들려고 온다.
+   밝은 미색은 눈을 깨운다. 어두운 쪽이 실제로 더 나은 경험이다.
+
+   차가운 검정이 아니라 따뜻한 밤빛으로 간다. 브랜드가 미색·클레이라
+   순수 회색으로 뒤집으면 다른 서비스처럼 보인다.
+
+   홈에서만 붙는다(Home.jsx가 <html>에 넣고 나갈 때 뗀다).
+   안쪽 화면은 하나의 얼굴로 둔다 — 두 문이 만나는 자리다.
+   ============================================================ */
+:root[data-face='moon'] {
+  --bg:          #1b1c22;   /* 밤빛 배경 — 푸른 기가 아주 조금 */
+  --bg-soft:     #24252d;   /* 카드 */
+  --bg-sunken:   #15161b;   /* 눌린 영역 */
+  --ink:         #e9e5dc;   /* 달빛 글자 — 순백이 아니라 미색을 유지 */
+  --ink-soft:    #a9a49a;
+  --ink-faint:   #78746c;
+  --line:        #34363f;
+  --sage:        #9db394;   /* 어두운 바탕에서 읽히도록 올림 */
+  --sage-deep:   #b5c7ac;
+  --clay:        #cbae93;
+  --clay-deep:   #dcc2a7;
+  --white:       #24252d;   /* 흰 카드로 쓰이던 자리 — 밤에는 어두워야 한다 */
+  --bg-blur:     rgba(27, 28, 34, 0.86);
+}
+
+/* 얼굴이 바뀔 때 화면이 튀지 않게. 글자색까지 함께 넘긴다. */
+body {
+  transition: background-color 420ms ease, color 420ms ease;
+}
+@media (prefers-reduced-motion: reduce) {
+  body { transition: none; }
+}
+
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
