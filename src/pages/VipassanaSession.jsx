@@ -49,6 +49,8 @@ export default function VipassanaSession() {
   // 실습을 새로 만들지 않고 태도만 바꾸는 구조의 실제 진입점이다.
   const [params] = useSearchParams()
   const attitudeKey = params.get('attitude') === 'accept' ? 'accept' : 'observe'
+  // MBSR에서 들어온 실습은 일지에도 MBSR로 남아야 8주 진도가 읽힌다
+  const trackKey = params.get('program') === 'mbsr' ? 'mbsr' : 'vipassana'
   const p = getPractice(id)
 
   const [phase, setPhase] = useState('setup') // setup | running | done
@@ -148,7 +150,7 @@ export default function VipassanaSession() {
   const goRecord = () => {
     navigate('/complete', {
       state: {
-        track: 'vipassana',
+        track: trackKey,
         practice: id,
         duration_sec: Math.round(Math.min(elapsed, totalSec)),
         // 카운팅은 숫자가 곧 결과다. 사람이 읽을 요약은 breath_pattern에,

@@ -1,0 +1,155 @@
+/* ============================================================
+   8주 마음챙김(MBSR) — 다섯 번째 색
+
+   전통이 아니라 프로그램이라, 다른 갈래처럼 강한 색을 쓰지 않는다.
+   차분한 세이지그레이 — 세속적·임상적 톤에 맞춘 중립색.
+   ============================================================ */
+
+.mbsr-theme {
+  --sage: #7d8f86;
+  --sage-deep: #5d6f66;
+  --bg: #f4f6f4;
+  --bg-soft: #fbfcfb;
+  --bg-sunken: #e7ebe8;
+
+  background: var(--bg);
+}
+
+/* 정식 과정이 아니라는 고지 — 눈에 띄되 겁주지 않게 */
+.mb-disclaimer {
+  padding: var(--sp-3);
+  border: 1px solid var(--line);
+  border-left: 3px solid var(--sage);
+  border-radius: 0 var(--radius) var(--radius) 0;
+  background: var(--bg-soft);
+  margin-bottom: var(--sp-4);
+}
+.mb-disclaimer__title { font-weight: 600; margin-bottom: 0.4rem; }
+.mb-disclaimer p { font-size: 0.9rem; color: var(--ink-soft); line-height: 1.8; }
+
+/* 진도 */
+.mb-progress { padding: var(--sp-3) var(--sp-4); margin-bottom: var(--sp-3); }
+.mb-progress__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-2);
+  flex-wrap: wrap;
+}
+.mb-progress__head h2 { font-size: 1.6rem; margin-top: 0.1rem; }
+.mb-weeks-bar { display: flex; gap: 6px; margin-top: var(--sp-2); }
+.mb-week-dot {
+  flex: 1;
+  height: 6px;
+  border-radius: 999px;
+  background: var(--bg-sunken);
+  transition: background 0.3s var(--ease);
+}
+.mb-week-dot.is-done { background: var(--sage); }
+.mb-week-dot.is-now { background: var(--sage-deep); box-shadow: 0 0 0 2px rgba(93, 111, 102, 0.18); }
+.mb-progress__note { margin-top: var(--sp-2); font-size: 0.82rem; color: var(--ink-faint); }
+
+.mb-relation { padding: var(--sp-3) var(--sp-4); margin-bottom: var(--sp-4); }
+.mb-relation p { color: var(--ink-soft); line-height: 1.85; margin-top: 0.3rem; }
+
+/* 8주 목록 */
+.mb-week-list { display: flex; flex-direction: column; gap: 0.5rem; }
+.mb-week {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  padding: var(--sp-2) var(--sp-3);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--bg-soft);
+  transition: all 0.2s var(--ease);
+}
+.mb-week:hover { border-color: var(--sage); box-shadow: var(--shadow); transform: translateY(-1px); }
+.mb-week.is-now { border-color: var(--sage-deep); background: var(--bg-sunken); }
+.mb-week__n {
+  flex-shrink: 0;
+  width: 30px; height: 30px;
+  border-radius: 50%;
+  background: var(--bg-sunken);
+  color: var(--sage-deep);
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--font-serif); font-weight: 700; font-size: 0.9rem;
+}
+.mb-week__n.is-done { background: var(--sage); color: #fff; }
+.mb-week__body { flex: 1; min-width: 0; }
+.mb-week__body b { display: block; font-size: 0.98rem; }
+.mb-week__body .muted { display: block; font-size: 0.8rem; margin-top: 1px; }
+.mb-week__arrow { color: var(--sage-deep); flex-shrink: 0; }
+
+/* 7가지 태도 */
+.mb-attitudes { display: grid; grid-template-columns: repeat(2, 1fr); gap: var(--sp-2); }
+.mb-attitude {
+  padding: var(--sp-3);
+  background: var(--bg-soft);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+}
+.mb-attitude b { font-family: var(--font-serif); font-size: 1.02rem; }
+.mb-attitude .faint { display: block; font-size: 0.75rem; font-style: italic; margin-top: 1px; }
+.mb-attitude p { font-size: 0.86rem; color: var(--ink-soft); line-height: 1.75; margin-top: 0.5rem; }
+
+/* ---------- 주차 상세 ---------- */
+.mb-week-attitude {
+  padding: var(--sp-3);
+  background: var(--bg-sunken);
+  border-radius: var(--radius);
+  margin-bottom: var(--sp-4);
+}
+.mb-week-attitude b { font-family: var(--font-serif); font-size: 1.1rem; }
+.mb-week-attitude .faint { margin-left: 0.4rem; font-size: 0.78rem; font-style: italic; }
+.mb-week-attitude p { font-size: 0.9rem; color: var(--ink-soft); line-height: 1.8; margin-top: 0.4rem; }
+
+.mb-section { margin-bottom: var(--sp-4); }
+.mb-practices { display: flex; flex-direction: column; gap: 0.5rem; }
+.mb-practice {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-2);
+  width: 100%;
+  padding: var(--sp-2) var(--sp-3);
+  text-align: left;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--bg-soft);
+  transition: all 0.2s var(--ease);
+}
+.mb-practice:hover { border-color: var(--sage); box-shadow: var(--shadow); }
+.mb-practice b { font-size: 0.98rem; }
+.mb-practice .muted { display: block; font-size: 0.8rem; margin-top: 1px; }
+.mb-practice__go { color: var(--sage-deep); font-size: 0.88rem; white-space: nowrap; }
+
+.mb-homework { padding-left: 1.1rem; }
+.mb-homework li { color: var(--ink-soft); line-height: 1.9; }
+
+.mb-note, .mb-closing {
+  padding: var(--sp-3);
+  border-radius: var(--radius);
+  background: var(--bg-sunken);
+  margin-bottom: var(--sp-3);
+}
+.mb-note p { font-size: 0.88rem; color: var(--ink-soft); line-height: 1.8; }
+.mb-closing p {
+  font-family: var(--font-serif);
+  font-size: 1.05rem;
+  text-align: center;
+  line-height: 1.8;
+}
+
+.mb-nav {
+  display: flex;
+  justify-content: space-between;
+  margin-top: var(--sp-4);
+  padding-top: var(--sp-3);
+  border-top: 1px solid var(--line);
+}
+
+@media (max-width: 640px) {
+  .mb-attitudes { grid-template-columns: 1fr; }
+  .mb-progress__head { flex-direction: column; align-items: flex-start; }
+}

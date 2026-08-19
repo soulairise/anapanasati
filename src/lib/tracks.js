@@ -16,6 +16,7 @@ export const TRACKS = {
   yoga: { key: 'yoga', label: '요가 호흡', icon: '🌀', to: '/yoga' },
   vipassana: { key: 'vipassana', label: '관찰 수행', icon: '💧', to: '/vipassana' },
   metta: { key: 'metta', label: '마음 나누기', icon: '💛', to: '/metta' },
+  mbsr: { key: 'mbsr', label: '8주 마음챙김', icon: '🌾', to: '/mbsr' },
 }
 
 export const getTrack = (key) => TRACKS[key] || TRACKS.anapanasati
@@ -35,6 +36,19 @@ export function describeSession(s) {
       title: t?.name_ko || '요가 호흡',
       detail: t?.name_sanskrit || '',
       backTo: t ? `/yoga/${t.id}` : '/yoga',
+    }
+  }
+
+  // MBSR은 실습을 새로 만들지 않고 관찰 수행의 것을 accept 태도로 빌려 쓴다.
+  // 그래서 표시할 이름도 accept 프레이밍(바디스캔 등)을 따라간다.
+  if (track.key === 'mbsr') {
+    const p = getPractice(s.practice)
+    const a = p?.attitudes?.accept
+    return {
+      track,
+      title: a?.title || p?.title || '8주 마음챙김',
+      detail: s.breath_pattern || a?.context || '',
+      backTo: '/mbsr',
     }
   }
 

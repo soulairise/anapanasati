@@ -23,6 +23,8 @@ import VipassanaSession from './pages/VipassanaSession'
 import Metta from './pages/Metta'
 import MettaDetail from './pages/MettaDetail'
 import MettaSession from './pages/MettaSession'
+import Mbsr from './pages/Mbsr'
+import MbsrWeek from './pages/MbsrWeek'
 import './App.css'
 
 // 로그인 필요한 라우트 보호
@@ -54,6 +56,8 @@ export default function App() {
           <Route path="/metta" element={<Metta />} />
           <Route path="/metta/:id" element={<MettaDetail />} />
           <Route path="/metta/:id/practice" element={<MettaSession />} />
+          <Route path="/mbsr" element={<Mbsr />} />
+          <Route path="/mbsr/week/:n" element={<MbsrWeek />} />
           <Route path="/complete" element={<SessionComplete />} />
           <Route path="/login" element={<Login />} />
           <Route path="/premium" element={<Premium />} />
