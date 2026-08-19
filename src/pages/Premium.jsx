@@ -15,112 +15,189 @@ const FREE = [
   '이번 달 히트맵 · 세어보기 정확도 추이',
 ]
 
+// ⚠️ "광고 없는 공간"을 혜택으로 적었었다. 애초에 광고가 없으니 없는 것을 판 셈이다.
+//    후원은 실제로 사실이므로 그것으로 바꿨다.
+//
+// 앞의 셋은 첫날 바로 느껴지고, 뒤의 둘은 기록이 쌓여야 의미가 생긴다.
+// 3일 체험으로 파는 건 앞의 셋이다. 순서를 그렇게 뒀다.
 const BENEFITS = [
-  { icon: '🎙️', text: '가이드 음성 명상 (마음을 이끄는 목소리)' },
-  { icon: '🎚️', text: '나만의 호흡 패턴 만들기 (초 단위로 직접 설정)' },
-  { icon: '🌿', text: '앰비언트 사운드 라이브러리 (빗소리·숲·파도…)' },
-  { icon: '📊', text: '긴 기간 분석 · 기록 검색 · 갈래별 비교' },
-  { icon: '🤖', text: 'AI 수행 코칭 — 일지에 격려와 조언' },
-  { icon: '🕊️', text: '광고 없는 온전히 고요한 공간' },
+  { icon: '🎙️', text: '가이드 음성 명상 (마음을 이끄는 목소리)', now: true },
+  { icon: '🎚️', text: '나만의 호흡 패턴 만들기 (초 단위로 직접 설정)', now: true },
+  { icon: '🌿', text: '앰비언트 사운드 라이브러리 (빗소리·숲·파도…)', now: true },
+  { icon: '📊', text: '긴 기간 분석 · 기록 검색 · 갈래별 비교', now: false },
+  { icon: '🤖', text: 'AI 수행 코칭 — 일지에 격려와 조언', now: false },
+  { icon: '🌱', text: '이 서비스가 계속 만들어지도록 돕는 일', now: false },
 ]
 
 // 국내 경쟁가: 마보 5,900/47,000 · 코끼리 6,900/45,000.
-// 이전 정가(9,800/98,000)는 콘텐츠 양이 1/100인데 월 40~66% 비쌌다.
 // 마보식 중간 구간(3개월)을 둬 연간이 부담스러운 입문자에게 다리를 놓는다.
+// ⚠️ Edge Function(confirm-payment)의 PRICE와 반드시 같은 값을 유지할 것.
+//    어긋나면 서버 금액 검증에서 결제가 조용히 거부된다. npm run check:launch 가 잡는다.
 const PLANS = [
-  {
-    key: 'yearly',
-    name: '연간',
-    price: 39000,
-    original: 49000,
-    per: '월 3,250원 꼴',
-    badge: '가장 인기',
-    highlight: true,
-  },
-  {
-    key: 'quarterly',
-    name: '3개월',
-    price: 12900,
-    original: 17900,
-    per: '월 4,300원 꼴',
-    badge: null,
-    highlight: false,
-  },
-  {
-    key: 'monthly',
-    name: '월간',
-    price: 4900,
-    original: 6900,
-    per: '매월 결제',
-    badge: null,
-    highlight: false,
-  },
+  { key: 'yearly', name: '1년', price: 39000, original: 49000, per: '월 3,250원 꼴', badge: '가장 인기', highlight: true },
+  { key: 'quarterly', name: '3개월', price: 12900, original: 17900, per: '월 4,300원 꼴', badge: null, highlight: false },
+  { key: 'monthly', name: '1개월', price: 4900, original: 6900, per: '한 달만', badge: null, highlight: false },
 ]
+
+const COUPON_MESSAGE = {
+  not_found: '그런 코드는 없어요. 다시 확인해 주세요.',
+  already_used: '이미 사용하신 쿠폰이에요.',
+  expired: '사용 기간이 지난 쿠폰이에요.',
+  exhausted: '준비된 수량이 모두 사용됐어요.',
+  inactive: '지금은 쓸 수 없는 쿠폰이에요.',
+  not_signed_in: '먼저 로그인해 주세요.',
+  error: '잠시 문제가 생겼어요. 다시 시도해 주세요.',
+}
+
+const fmtDate = (d) =>
+  d ? `${d.getFullYear()}년 ${d.getMonth() + 1}월 ${d.getDate()}일` : ''
+
+// 쿠폰 입력칸 — 프리미엄이든 아니든 쓸 수 있다. 기간은 뒤에 이어 붙는다.
+function CouponBox() {
+  const { redeemCoupon } = usePremium()
+  const { user } = useAuth()
+  const navigate = useNavigate()
+  const [code, setCode] = useState('')
+  const [busy, setBusy] = useState(false)
+  const [result, setResult] = useState(null)
+
+  const submit = async (e) => {
+    e.preventDefault()
+    if (!code.trim() || busy) return
+    if (!user) {
+      navigate('/login', { state: { redirectTo: '/premium' } })
+      return
+    }
+    setBusy(true)
+    setResult(null)
+    const r = await redeemCoupon(code)
+    setBusy(false)
+    setResult(
+      r?.ok
+        ? { ok: true, text: `${r.label} 쿠폰이 적용됐어요. ${r.days}일이 더해졌습니다.` }
+        : { ok: false, text: COUPON_MESSAGE[r?.reason] || COUPON_MESSAGE.error },
+    )
+    if (r?.ok) setCode('')
+  }
+
+  return (
+    <form className="coupon" onSubmit={submit}>
+      <label className="coupon__label" htmlFor="coupon-code">
+        쿠폰이 있으신가요?
+      </label>
+      <div className="coupon__row">
+        <input
+          id="coupon-code"
+          className="coupon__input"
+          value={code}
+          onChange={(e) => setCode(e.target.value)}
+          placeholder="쿠폰 코드"
+          autoCapitalize="characters"
+          autoComplete="off"
+          spellCheck="false"
+          maxLength={32}
+        />
+        <button type="submit" className="btn btn--ghost coupon__btn" disabled={busy}>
+          {busy ? '확인 중…' : '적용'}
+        </button>
+      </div>
+      {result && (
+        <p className={`coupon__msg ${result.ok ? 'is-ok' : 'is-no'}`} role="status">
+          {result.text}
+        </p>
+      )}
+    </form>
+  )
+}
 
 export default function Premium() {
   const navigate = useNavigate()
   const { user } = useAuth()
-  const { isPremium, setPremium } = usePremium()
+  const { isPremium, isTrial, source, premiumUntil, daysLeft, loading } = usePremium()
   const [selected, setSelected] = useState('yearly')
-  const [done, setDone] = useState(false)
   const selectedPlan = PLANS.find((p) => p.key === selected)
 
-  // 토스 키가 설정돼 있으면 실제 결제창을 띄우고, 아니면 데모로 즉시 활성화한다.
   const handleSubscribe = async () => {
     if (!user) {
       navigate('/login', { state: { redirectTo: '/premium' } })
       return
     }
     const plan = PLANS.find((p) => p.key === selected)
-    if (TOSS_READY) {
-      try {
-        await requestSubscription({
-          planKey: plan.key,
-          orderName: `숨결의 길 프리미엄 (${plan.name})`,
-          amount: plan.price,
-          customerEmail: user.email,
-          customerName: user.display_name,
-        })
-      } catch {
-        /* 사용자가 결제창을 닫음 등 — 별도 처리 없음 */
-      }
-    } else {
-      // 데모(테스트 키/미설정): 즉시 프리미엄 부여
-      setPremium(true)
-      setDone(true)
+    if (!TOSS_READY) return
+    try {
+      await requestSubscription({
+        planKey: plan.key,
+        orderName: `숨결의 길 프리미엄 (${plan.name})`,
+        amount: plan.price,
+        customerEmail: user.email,
+        customerName: user.display_name,
+      })
+    } catch {
+      /* 사용자가 결제창을 닫음 등 — 별도 처리 없음 */
     }
   }
 
-  if (isPremium) {
+  if (loading) {
     return (
       <div className="page">
         <div className="container container--narrow text-center">
-          <div style={{ fontSize: '2.5rem' }}>🌿</div>
-          <p className="eyebrow" style={{ marginTop: '0.5rem' }}>PREMIUM</p>
-          <h1 style={{ fontSize: '1.8rem', margin: '0.5rem 0' }}>프리미엄 이용 중입니다</h1>
-          <p className="muted">모든 기능이 열려 있어요. 고요한 수행을 이어가세요.</p>
-          <div className="stack" style={{ marginTop: '2rem' }}>
+          <p className="muted">불러오는 중…</p>
+        </div>
+      </div>
+    )
+  }
+
+  // ── 이용 중인 상태 ──────────────────────────────────────────
+  if (isPremium) {
+    const label = { trial: '체험 중', coupon: '쿠폰으로 이용 중', payment: '이용 중' }[source] || '이용 중'
+    return (
+      <div className="page">
+        <div className="container container--narrow text-center">
+          <div style={{ fontSize: '2.5rem' }}>{isTrial ? '🌱' : '🌿'}</div>
+          <p className="eyebrow" style={{ marginTop: '0.5rem' }}>PREMIUM · {label}</p>
+          <h1 style={{ fontSize: '1.8rem', margin: '0.5rem 0' }}>
+            {daysLeft}일 남았습니다
+          </h1>
+          <p className="muted">{fmtDate(premiumUntil)}까지 모든 기능이 열려 있어요.</p>
+
+          {isTrial && (
+            <div className="trial-note">
+              <p>
+                <b>체험이 끝나도 자동으로 결제되지 않습니다.</b> 카드를 받지 않았으니
+                아무 일도 일어나지 않아요. 기간이 지나면 무료 기능으로 조용히 돌아갑니다.
+              </p>
+              <p className="faint">
+                수행·학습·일지는 원래 무료입니다. 체험이 끝나도 그대로 쓰실 수 있어요.
+              </p>
+            </div>
+          )}
+
+          <div className="stack" style={{ marginTop: '1.75rem' }}>
             <button className="btn btn--primary" onClick={() => navigate('/breathe')}>
               호흡하러 가기
             </button>
-            {/* 규제 요구: 해지 경로가 구매 경로보다 번거로워선 안 된다.
-                숨기지 않고 같은 화면·같은 크기로 둔다. */}
-            <button
-              className="btn btn--ghost btn--block"
-              onClick={() => setPremium(false)}
-              style={{ marginTop: '0.75rem' }}
-            >
-              구독 해지
-            </button>
-            <p className="faint" style={{ fontSize: '0.82rem', marginTop: '0.75rem', lineHeight: 1.7 }}>
-              해지해도 남은 기간은 그대로 쓰실 수 있고, 기록은 사라지지 않습니다.
-            </p>
+            {isTrial && (
+              <button
+                className="btn btn--ghost btn--block"
+                onClick={() => navigate('/premium?buy=1', { replace: true })}
+                style={{ marginTop: '0.75rem' }}
+                // 체험 중에도 미리 결제해 두면 기간이 뒤에 이어 붙는다.
+                // (Edge Function이 남은 기간 뒤에 더한다)
+              >
+                이어서 쓰려면 — 요금제 보기
+              </button>
+            )}
+          </div>
+
+          <div style={{ marginTop: '2rem', textAlign: 'left' }}>
+            <CouponBox />
           </div>
         </div>
       </div>
     )
   }
 
+  // ── 판매 화면 ────────────────────────────────────────────────
   return (
     <div className="page">
       <div className="container container--narrow">
@@ -129,7 +206,13 @@ export default function Premium() {
           <h1 style={{ fontSize: 'clamp(1.8rem,5vw,2.4rem)', margin: '0.5rem 0' }}>
             수행을 더 깊이,<br />숨결의 길 프리미엄
           </h1>
-          <p className="muted">지금 오픈기념 특별 가격으로 시작하세요.</p>
+          {!user ? (
+            <p className="muted">
+              가입하시면 <b>3일 동안 무료</b>로 열립니다. 카드는 받지 않습니다.
+            </p>
+          ) : (
+            <p className="muted">지금 오픈기념 특별 가격으로 시작하세요.</p>
+          )}
         </header>
 
         {/* 무료로 열려 있는 것 — 무엇을 사는지 알고 사게 한다 */}
@@ -142,7 +225,6 @@ export default function Premium() {
           </ul>
         </div>
 
-        {/* 혜택 */}
         <p className="eyebrow" style={{ marginTop: '1.5rem' }}>프리미엄으로 더해지는 것</p>
         <div className="card benefits">
           {BENEFITS.map((b) => (
@@ -153,7 +235,6 @@ export default function Premium() {
           ))}
         </div>
 
-        {/* 요금제 */}
         <div className="plans">
           {PLANS.map((p) => (
             <button
@@ -173,47 +254,48 @@ export default function Premium() {
         </div>
 
         <button className="btn btn--primary btn--block subscribe-btn" onClick={handleSubscribe}>
-          7일 무료로 시작하기
+          {user
+            ? `${selectedPlan.name} ₩${selectedPlan.price.toLocaleString()} 결제하기`
+            : '가입하고 3일 무료로 써보기'}
         </button>
 
         {/*
-          2025.2.14 시행 구독 규제 대응 — 다크패턴 6종 금지, 위반 시 최대 500만원.
-          ① 자동갱신·금액·주기를 결제 버튼 옆에 숨김 없이 ② 해지 경로를 구매만큼 눈에 띄게
-          ③ 강압 팝업 없음. 이건 규제 준수이자 브랜드 자산이다.
+          2025.2.14 시행 구독 규제 대응 — 다크패턴 6종 금지.
+          자동 갱신을 하지 않으므로 갱신 전 고지·해지 실동작 의무는 애초에 걸리지 않는다.
+          대신 "자동 갱신이 없다"는 사실을 결제 버튼 바로 옆에서 분명히 말한다.
+          모르고 다시 결제되는 일이 없어야 한다는 취지는 똑같이 지킨다.
         */}
         <div className="terms-box">
           <p>
-            7일 무료 체험이 끝나면 <b>{selectedPlan.name} ₩{selectedPlan.price.toLocaleString()}</b>이
-            자동으로 결제되고, 이후 {selectedPlan.name} 단위로 갱신됩니다.
+            <b>자동으로 다시 결제되지 않습니다.</b> 결제하신 기간이 끝나면 무료 기능으로
+            돌아갑니다. 이어서 쓰고 싶으실 때 직접 다시 결제하시면 됩니다.
           </p>
           <p>
-            <b>해지는 언제든 한 번에 됩니다.</b> 체험 기간에 해지하면 요금이 청구되지 않고,
-            해지해도 남은 기간은 그대로 쓰실 수 있습니다.
+            표시된 금액은 <b>부가세가 포함된 가격</b>이며, 그 밖에 청구되는 비용은 없습니다.
+            남은 기간이 있는 상태에서 결제하시면 그 뒤에 이어 붙습니다.
           </p>
           <p className="terms-box__cancel">
-            해지 방법: 로그인 후 <b>프리미엄 → 구독 해지</b> 버튼 한 번.
+            결제일부터 7일 이내이고 유료 기능을 쓰지 않으셨다면 전액 환불해 드립니다.
+            그 뒤에도 쓰신 기간만 빼고 돌려드리며, <b>위약금은 없습니다.</b>{' '}
             문의는 <a href="mailto:mykim97@gmail.com">mykim97@gmail.com</a>
           </p>
           {/*
-            원래는 "이유를 묻지 않고" 열어드리는 정책이었으나, 문의가 감당할 수 없이
-            몰릴 수 있어 대상을 강사로 좁혔다. 자격증 확인이라는 문턱이 생기지만,
-            요가·명상 강사는 수련생에게 앱을 전하는 통로이기도 해서 대상으로는 맞다.
+            강사는 수련생에게 앱을 전하는 통로다. 자격 확인이라는 문턱을 낮추고
+            대신 기간을 3개월로 넉넉히 줘서, 실제로 수업에 써보고 판단하게 한다.
+            쿠폰은 요청 한 건마다 1인용 코드를 새로 발행한다(공용 코드는 유출되면 끝이다).
           */}
           <p className="terms-box__aid">
-            형편이 어려운 <b>요가 강사님</b>은 강사 자격증을 첨부해 주시면
-            확인하고 무료로 열어드립니다.
+            <b>요가 강사님께는 3개월 무료 쿠폰</b>을 드립니다.{' '}
+            <a href="mailto:mykim97@gmail.com?subject=%5B%EC%88%A8%EA%B2%B0%EC%9D%98%20%EA%B8%B8%5D%20%EC%9A%94%EA%B0%80%20%EA%B0%95%EC%82%AC%20%EC%BF%A0%ED%8F%B0%20%EC%9A%94%EC%B2%AD">
+              메일로 요청
+            </a>
+            해 주시면 코드를 보내드립니다.
           </p>
         </div>
 
-        <p className="faint text-center" style={{ fontSize: '0.8rem', marginTop: '0.75rem' }}>
-          결제는 토스페이먼츠로 안전하게 진행됩니다 · 출시 예정
-        </p>
-
-        {done && (
-          <div className="banner" style={{ marginTop: '1.5rem' }}>
-            🎉 (데모) 프리미엄이 활성화됐습니다! 이제 모든 기능이 열렸어요.
-          </div>
-        )}
+        <div style={{ marginTop: '1.5rem' }}>
+          <CouponBox />
+        </div>
       </div>
     </div>
   )

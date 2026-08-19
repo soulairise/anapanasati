@@ -75,14 +75,26 @@ Deno.serve(async (req) => {
       Deno.env.get('SUPABASE_URL')!,
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
     )
-    const until = new Date()
+    // 남은 기간이 있으면 그 뒤에 이어 붙인다.
+    // 지금부터 다시 세면, 체험이나 쿠폰 기간이 남은 사람이 결제하는 순간
+    // 남은 날을 뺏기게 된다. 돈을 낸 사람이 손해를 보는 구조는 안 된다.
+    const { data: prev } = await admin
+      .from('profiles')
+      .select('premium_until')
+      .eq('id', user.id)
+      .maybeSingle()
+
+    const now = new Date()
+    const prevUntil = prev?.premium_until ? new Date(prev.premium_until) : null
+    const until = prevUntil && prevUntil > now ? new Date(prevUntil) : new Date(now)
     until.setMonth(until.getMonth() + (MONTHS[plan] ?? 1))
 
     const { error: profileError } = await admin.from('profiles').upsert({
       id: user.id,
       is_premium: true,
       premium_until: until.toISOString(),
-      updated_at: new Date().toISOString(),
+      premium_source: 'payment',
+      updated_at: now.toISOString(),
     })
     if (profileError) {
       return json(

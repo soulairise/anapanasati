@@ -9,7 +9,7 @@ import { usePremium } from '../context/PremiumContext'
 export default function PaySuccess() {
   const [params] = useSearchParams()
   const navigate = useNavigate()
-  const { setPremium } = usePremium()
+  const { refresh } = usePremium()
   const [status, setStatus] = useState('confirming') // confirming | done | error
   const [message, setMessage] = useState('')
 
@@ -34,7 +34,7 @@ export default function PaySuccess() {
           setMessage(data?.message || '결제 승인 중 문제가 발생했습니다.')
           return
         }
-        setPremium(true) // 화면 즉시 반영 (서버 profiles.is_premium도 갱신됨)
+        refresh() // 서버가 이미 기간을 적었다. 다시 읽어 화면에 반영한다.
         setStatus('done')
       })
       .catch(() => {

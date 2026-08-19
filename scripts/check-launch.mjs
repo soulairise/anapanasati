@@ -98,29 +98,38 @@ for (const [slug, label] of [
     : results.push(no(`${label} 없음`)) || blocking++
 }
 
-// 5) 표시와 실제 동작의 일치 — 없는 기능을 판다고 쓰면 표시광고법 문제가 된다
-results.push('\n[5] 표시 ↔ 실제 동작')
+// 5) 선언한 판매 방식과 실제 구현이 맞는지
+//    처음에는 화면 문구를 정규식으로 훑었는데, "자동으로 다시 결제되지 않습니다"를
+//    자동결제 약속으로 읽었다. 부정문을 정규식으로 가리는 건 틀린 방법이다.
+//    코드가 스스로 선언하게 하고 그 선언만 검사한다.
+results.push('\n[5] 판매 방식 선언 ↔ 구현')
 const payments = await readFile(join(ROOT, 'src/lib/payments.js'), 'utf8')
-const claimsTrial = /무료\s*체험|무료로 시작/.test(premium)
-const hasTrial = /trial|체험/i.test(payments) || /trial/i.test(fn)
-if (claimsTrial && !hasTrial) {
-  results.push(no('화면은 "무료 체험"을 약속하는데 결제 코드에 체험 로직이 없음'))
+const model = (payments.match(/BILLING_MODEL\s*=\s*'(\w+)'/) || [])[1]
+const needsCard = /TRIAL_REQUIRES_CARD\s*=\s*true/.test(payments)
+const hasBilling = /issueBillingKey|billingKey/i.test(payments) || /billingKey/i.test(fn)
+
+if (!model) {
+  results.push(no('payments.js에 BILLING_MODEL 선언이 없음'))
   blocking++
-} else if (claimsTrial) {
-  results.push(ok('무료 체험 표시 — 결제 코드에 관련 로직 있음'))
+} else if (model === 'recurring' || needsCard) {
+  if (hasBilling) results.push(ok(`${model} — 빌링키 코드 있음`))
+  else {
+    results.push(no(`${model}로 선언했는데 빌링키 발급 코드가 없음`))
+    blocking++
+  }
 } else {
-  results.push(ok('무료 체험을 표시하지 않음'))
+  results.push(ok('one_time — 자동 갱신 없음. 갱신 고지·해지 실동작 의무가 걸리지 않는다'))
+  if (hasBilling) {
+    results.push(warn('빌링키로 보이는 코드가 있다. 선언과 맞는지 확인하세요.'))
+  }
 }
-const claimsAutoRenew = /자동으로 결제|자동 ?갱신/.test(premium)
-const hasBilling = /billing|빌링|issueBillingKey/i.test(payments)
-if (claimsAutoRenew && !hasBilling) {
-  results.push(no('화면은 "자동 갱신"을 약속하는데 빌링키 발급 코드가 없음 (1회성 결제)'))
-  blocking++
-} else if (claimsAutoRenew) {
-  results.push(ok('자동 갱신 표시 — 빌링키 코드 있음'))
-} else {
-  results.push(ok('자동 갱신을 표시하지 않음'))
-}
+
+const trialDays = (payments.match(/TRIAL_DAYS\s*=\s*(\d+)/) || [])[1]
+results.push(
+  trialDays
+    ? ok(`무료 체험 ${trialDays}일 (카드 ${needsCard ? '받음' : '받지 않음'})`)
+    : warn('TRIAL_DAYS 선언 없음'),
+)
 
 // 6) 사람이 직접 봐야 하는 것
 results.push('\n[6] 기계가 못 보는 것 — 직접 확인')
@@ -128,7 +137,8 @@ for (const s of [
   'Edge Function을 배포했는가 (supabase functions deploy confirm-payment)',
   'Supabase에 TOSS_SECRET_KEY 시크릿이 라이브 키로 들어갔는가',
   '통신판매업 신고서의 인터넷 도메인에 이 사이트가 포함돼 있는가 (아니면 변경신고)',
-  '테스트 카드로 결제 → 프리미엄 활성 → 해지까지 한 번 돌려봤는가',
+  '테스트 카드로 결제 → 기간이 이어붙는지 한 번 돌려봤는가',
+  'TRIAL_DAYS 와 DB 트리거(handle_new_user)의 체험 일수가 같은가',
 ]) results.push(warn(s))
 
 console.log(results.join('\n'))
