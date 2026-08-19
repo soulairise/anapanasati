@@ -1,0 +1,53 @@
+/* ── 배경의 해와 달 ───────────────────────────────────────
+   화면 오른쪽 위에 낮게 걸어 둔다. 해가 뜨거나 지는 높이다.
+   본문을 덮지 않도록 z-index를 바닥에 두고 클릭을 통과시킨다. */
+.face-backdrop {
+  position: fixed;
+  top: -4vh;
+  right: -8vw;
+  width: min(56vw, 460px);
+  aspect-ratio: 1;
+  z-index: 0;
+  pointer-events: none; /* 배경일 뿐이다. 클릭을 가로채면 안 된다 */
+  transition: color 420ms ease, opacity 420ms ease;
+}
+.face-backdrop svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+/* 해 — 따뜻한 클레이. 미색 배경 위에서 거의 안 보일 만큼만 */
+.face-backdrop--sun {
+  color: var(--clay);
+  opacity: 0.16;
+}
+/* 달 — 달빛은 색이 아니라 밝기다. 미색 계열을 그대로 쓴다 */
+.face-backdrop--moon {
+  color: #cfd6e4;
+  /* 0.2 로 잡았더니 제목 위로 또렷하게 떠서 시선을 먼저 가져갔다.
+     배경은 있는 줄 모르다가 문득 보이는 정도여야 한다. */
+  opacity: 0.13;
+}
+/* 밝은 팔레트(안쪽 화면)에 달이 걸릴 때는 더 낮춘다.
+   밝은 바탕 위의 옅은 회색은 얼룩처럼 보인다. */
+:root:not([data-face='moon']) .face-backdrop--moon {
+  color: #8e99b0;
+  opacity: 0.13;
+}
+
+/* 본문이 배경 위에 오도록 */
+main,
+.navbar,
+.site-footer {
+  position: relative;
+  z-index: 1;
+}
+
+@media (max-width: 480px) {
+  .face-backdrop {
+    width: min(72vw, 320px);
+    top: -2vh;
+    right: -14vw;
+  }
+}

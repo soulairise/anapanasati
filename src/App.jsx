@@ -27,6 +27,8 @@ import Mbsr from './pages/Mbsr'
 import MbsrWeek from './pages/MbsrWeek'
 import Legal from './pages/Legal'
 import SiteFooter from './components/SiteFooter'
+import FaceBackdrop from './components/FaceBackdrop'
+import { FaceProvider } from './context/FaceContext'
 import './App.css'
 
 // 로그인 필요한 라우트 보호
@@ -39,7 +41,8 @@ function Protected({ children }) {
 
 export default function App() {
   return (
-    <>
+    <FaceProvider>
+      <FaceBackdrop />
       <Navbar />
       <main>
         <Routes>
@@ -86,6 +89,6 @@ export default function App() {
         </Routes>
       </main>
       <SiteFooter />
-    </>
+    </FaceProvider>
   )
 }

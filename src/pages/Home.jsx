@@ -1,6 +1,5 @@
-import { useEffect, useState } from 'react'
-import { Link, useNavigate, useLocation } from 'react-router-dom'
-import { resolveFace, storeFace } from '../lib/face'
+import { Link, useNavigate } from 'react-router-dom'
+import { useFace } from '../context/FaceContext'
 import './Home.css'
 
 /*
@@ -69,24 +68,8 @@ const FACE_COPY = {
 
 export default function Home() {
   const navigate = useNavigate()
-  const { search } = useLocation()
-  const [face, setFace] = useState(() => resolveFace(search))
+  const { face, toggleFace } = useFace()
   const copy = FACE_COPY[face]
-
-  // 얼굴은 홈에서만 붙인다. 나갈 때 반드시 뗀다 —
-  // 안 떼면 안쪽 화면이 어두운 팔레트를 물려받는데, 그쪽은 색을 맞춰두지 않았다.
-  useEffect(() => {
-    const root = document.documentElement
-    if (face === 'moon') root.setAttribute('data-face', 'moon')
-    else root.removeAttribute('data-face')
-    return () => root.removeAttribute('data-face')
-  }, [face])
-
-  const toggleFace = () => {
-    const next = face === 'moon' ? 'sun' : 'moon'
-    setFace(next)
-    storeFace(next)
-  }
 
   return (
     <div className="page">
