@@ -5,6 +5,7 @@ import { usePremium } from '../context/PremiumContext'
 import { sessionsApi, computeStats } from '../lib/store'
 import { describeSession } from '../lib/tracks'
 import JournalTrend from '../components/JournalTrend'
+import JournalInsight from '../components/JournalInsight'
 import { formatDuration, formatDate } from '../lib/format'
 
 export default function Journal() {
@@ -63,6 +64,11 @@ export default function Journal() {
         {/* 추이 — 기록이 있을 때만 */}
         {!loading && sessions.length > 0 && <JournalTrend sessions={sessions} />}
 
+        {/* 긴 기간 되돌아보기 — 프리미엄. 아래 목록과 위 히트맵은 그대로 무료다. */}
+        {!loading && sessions.length > 0 && (
+          <JournalInsight sessions={sessions} isPremium={isPremium} />
+        )}
+
         {loading ? (
           <p className="muted text-center">불러오는 중…</p>
         ) : sessions.length === 0 ? (
@@ -105,20 +111,6 @@ export default function Journal() {
               )
             })}
 
-            {/* 히트맵·추이는 무료로 열었다(리텐션 장치를 유료화하면 습관이 안 생긴다).
-                프리미엄은 그보다 긴 기간의 분석·검색을 판다. */}
-            {!isPremium && sessions.length >= 12 && (
-              <div
-                className="card"
-                style={{ padding: '1.25rem', textAlign: 'center', cursor: 'pointer', marginTop: '0.5rem' }}
-                onClick={() => navigate('/premium')}
-              >
-                기록이 <b>{sessions.length}개</b> 쌓였습니다 —{' '}
-                <span style={{ color: 'var(--clay-deep)', fontWeight: 500 }}>
-                  긴 기간으로 되돌아보기
-                </span>
-              </div>
-            )}
           </div>
         )}
       </div>

@@ -6,7 +6,7 @@ import { getAudioContext, INHALE_FREQ, EXHALE_FREQ } from '../lib/bowl'
 import { playBreathTone } from '../lib/breathTone'
 import { useWakeLock, wakeLockSupported } from '../lib/useWakeLock'
 import { startBreathMic, micSupported } from '../lib/breathMic'
-import { createAmbient } from '../lib/ambient'
+import { createAmbient, AMBIENT_KINDS } from '../lib/ambient'
 import { speak, stopNarration, primeNarration, PHASE_WORDS, SPOKEN } from '../lib/narration'
 import './Breathe.css'
 
@@ -41,6 +41,25 @@ const bpmLabel = (phases) => {
 const TEMPO_MIN = -2
 const TEMPO_MAX = 4
 const TEMPO_KEY = 'soomgil_breath_tempo'
+
+// 나만의 패턴 — 프리미엄. 프리셋은 그대로 무료다.
+// 상한 20초: 그 이상은 숙련자도 편히 유지하기 어렵고, 실수로 눌러 만든 값이기 쉽다.
+// 들숨·날숨은 최소 2초(0초면 호흡이 아니다). 멈춤은 0초를 허용한다.
+const AMBIENT_KEY = 'soomgil_ambient_kind'
+const CUSTOM_KEY = 'soomgil_custom_pattern'
+const CUSTOM_MAX = 20
+const CUSTOM_DEFAULT = [4, 2, 6, 2]
+const loadCustom = () => {
+  try {
+    const v = JSON.parse(localStorage.getItem(CUSTOM_KEY))
+    if (Array.isArray(v) && v.length === 4 && v.every((n) => Number.isFinite(n))) return v
+  } catch {
+    /* 저장값이 깨졌으면 기본값으로 */
+  }
+  return CUSTOM_DEFAULT
+}
+// 들숨(0)·날숨(2)은 2초 아래로 내려가지 않는다
+const clampPhase = (i, v) => Math.max(i === 0 || i === 2 ? 2 : 0, Math.min(CUSTOM_MAX, v))
 const applyTempo = (phases, adj) =>
   phases.map((sec, i) => (sec > 0 && (i === 0 || i === 2) ? Math.max(2, sec + adj) : sec))
 const PHASE_NAMES = ['들이쉬기', '멈추기', '내쉬기', '멈추기']
@@ -72,8 +91,13 @@ export default function Breathe() {
   const [soundOn, setSoundOn] = useState(true)
   const [ripples, setRipples] = useState([])
   const [orbScale, setOrbScale] = useState(0.6) // 작은 원으로 시작
-  const [ambientOn, setAmbientOn] = useState(true) // 배경음(파도)
+  const [ambientOn, setAmbientOn] = useState(true) // 배경음
   const [ambientKind, setAmbientKind] = useState(null) // 현재 재생 중인 배경음 종류
+  // 어떤 배경음을 고를지 — 파도는 무료, 나머지는 프리미엄
+  const [ambientChoice, setAmbientChoice] = useState(
+    () => localStorage.getItem(AMBIENT_KEY) || 'ocean',
+  )
+  const [customPhases, setCustomPhases] = useState(loadCustom)
   const [narrationOn, setNarrationOn] = useState(true) // 나레이션(inhale/exhale/hold)
   const [preparing, setPreparing] = useState(false) // 시작 직후 잠깐의 준비 시간
   // 눈감기 모드 — 시작 30초 뒤 화면을 어둡게 해 소리에 맡긴다.
@@ -150,10 +174,10 @@ export default function Breathe() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [micOn])
 
-  // 배경음 시작 (파도/모닥불 랜덤)
+  // 배경음 시작 — 고른 종류로. 프리미엄이 아니면 파도로 떨어진다.
   const startAmbient = () => {
     if (ambientRef.current) return
-    const a = createAmbient(0.3)
+    const a = createAmbient(0.3, allowedAmbient)
     ambientRef.current = a
     setAmbientKind(a.kind)
   }
@@ -170,7 +194,26 @@ export default function Breathe() {
     localStorage.setItem(TEMPO_KEY, String(tempo))
   }, [tempo])
 
-  const tunedPhases = applyTempo(pattern.phases, tempo)
+  useEffect(() => {
+    localStorage.setItem(CUSTOM_KEY, JSON.stringify(customPhases))
+  }, [customPhases])
+
+  useEffect(() => {
+    localStorage.setItem(AMBIENT_KEY, ambientChoice)
+  }, [ambientChoice])
+
+  // 고른 배경음이 프리미엄인데 자격이 없으면 파도로 돌린다.
+  // 구독이 끝난 사람이 소리가 아예 안 나는 상태를 만나면 안 된다.
+  const allowedAmbient = (() => {
+    const k = AMBIENT_KINDS.find((a) => a.key === ambientChoice)
+    return !k || (k.premium && !isPremium) ? 'ocean' : k.key
+  })()
+
+  // 나만의 패턴은 편집 중에도 바로 반영돼야 한다.
+  // pattern 상태에 배열을 복사해 두면 편집할 때마다 어긋난다.
+  const activePattern =
+    pattern.key === 'custom' ? { key: 'custom', label: '나만의', phases: customPhases } : pattern
+  const tunedPhases = applyTempo(activePattern.phases, tempo)
 
   // 유효 페이즈만 (0초 페이즈는 건너뜀)
   const activePhases = tunedPhases
@@ -346,14 +389,14 @@ export default function Breathe() {
       state: {
         duration_sec: elapsed,
         stage: stageId,
-        breath_pattern: pattern.key,
+        breath_pattern: activePattern.key,
       },
     })
   }
 
   const isInhale = phaseIdx === 0
   const isExhale = phaseIdx === 2
-  const currentPhaseSec = pattern.phases[phaseIdx] || 1
+  const currentPhaseSec = activePattern.phases[phaseIdx] || 1
   const phaseColor = PHASE_COLORS[phaseIdx]
 
   // 배경/오브에 넘길 CSS 변수 (배경 물결도 원 크기를 따라 숨쉼)
@@ -399,7 +442,81 @@ export default function Breathe() {
                   </button>
                 )
               })}
+
+              {/* 나만의 패턴 — 프리미엄. 프리셋은 전부 무료로 두고 이것만 판다.
+                  전략 문서(6-2)가 "커스텀 패턴을 판다"고 정해 둔 항목이다. */}
+              <button
+                className={`pattern-chip pattern-chip--stacked ${
+                  pattern.key === 'custom' ? 'active' : ''
+                } ${isPremium ? '' : 'is-locked'}`}
+                onClick={() =>
+                  isPremium
+                    ? setPattern({ key: 'custom', label: '나만의' })
+                    : navigate('/premium')
+                }
+              >
+                <span>나만의{isPremium ? '' : ' 🔒'}</span>
+                <span className="pattern-chip__bpm">
+                  {isPremium ? bpmLabel(applyTempo(customPhases, tempo)) : '초 단위 설정'}
+                </span>
+              </button>
             </div>
+
+            {pattern.key === 'custom' && isPremium && (
+              <div className="custom-editor">
+                <p className="custom-editor__title">초 단위로 직접 맞추기</p>
+                {PHASE_NAMES.map((name, i) => (
+                  <div className="custom-row" key={name}>
+                    <span className="custom-row__name">{name}</span>
+                    <div className="custom-row__ctrl">
+                      <button
+                        type="button"
+                        className="tempo-btn"
+                        aria-label={`${name} 1초 줄이기`}
+                        disabled={customPhases[i] <= (i === 0 || i === 2 ? 2 : 0)}
+                        onClick={() =>
+                          setCustomPhases((v) =>
+                            v.map((sec, j) => (j === i ? clampPhase(i, sec - 1) : sec)),
+                          )
+                        }
+                      >
+                        −
+                      </button>
+                      <span className="custom-row__val">{customPhases[i]}초</span>
+                      <button
+                        type="button"
+                        className="tempo-btn"
+                        aria-label={`${name} 1초 늘리기`}
+                        disabled={customPhases[i] >= CUSTOM_MAX}
+                        onClick={() =>
+                          setCustomPhases((v) =>
+                            v.map((sec, j) => (j === i ? clampPhase(i, sec + 1) : sec)),
+                          )
+                        }
+                      >
+                        +
+                      </button>
+                    </div>
+                  </div>
+                ))}
+                <p className="custom-editor__sum">
+                  한 호흡 {customPhases.reduce((a, b) => a + b, 0)}초 ·{' '}
+                  {bpmLabel(customPhases)}
+                </p>
+                <p className="faint" style={{ fontSize: '0.82rem', lineHeight: 1.7 }}>
+                  멈춤은 0초로 둘 수 있습니다. 들이쉬기와 내쉬기는 2초 아래로 줄지 않습니다.
+                  숫자를 정확히 맞추려 애쓰지 마세요 — 편안한 쪽이 맞는 쪽입니다.
+                </p>
+                <button
+                  type="button"
+                  className="btn btn--ghost btn--block"
+                  style={{ marginTop: '0.75rem' }}
+                  onClick={() => setCustomPhases(CUSTOM_DEFAULT)}
+                >
+                  처음 값으로 되돌리기
+                </button>
+              </div>
+            )}
 
             <p className="eyebrow" style={{ marginTop: '1.5rem' }}>수행 시간</p>
             <div className="pattern-picker">
@@ -423,12 +540,35 @@ export default function Breathe() {
                 🔔 싱잉볼 {soundOn ? '켜짐' : '꺼짐'}
               </button>
               <button className={`sound-toggle ${ambientOn ? '' : 'is-off'}`} onClick={toggleAmbient}>
-                🌊 파도 소리 {ambientOn ? '켜짐' : '꺼짐'}
+                {AMBIENT_KINDS.find((a) => a.key === allowedAmbient)?.label || '🌊 파도'}{' '}
+                {ambientOn ? '켜짐' : '꺼짐'}
               </button>
               <button className={`sound-toggle ${narrationOn ? '' : 'is-off'}`} onClick={toggleNarration}>
                 🎙️ 나레이션 {narrationOn ? '켜짐' : '꺼짐'}
               </button>
             </div>
+            {/* 배경음 종류 — 파도는 무료, 나머지는 프리미엄.
+                지금 듣던 사람에게서 뺏지 않고 고를 것을 더한다. */}
+            {ambientOn && (
+              <div className="ambient-picker">
+                {AMBIENT_KINDS.map((a) => {
+                  const locked = a.premium && !isPremium
+                  return (
+                    <button
+                      key={a.key}
+                      className={`ambient-chip ${allowedAmbient === a.key ? 'active' : ''} ${
+                        locked ? 'is-locked' : ''
+                      }`}
+                      onClick={() => (locked ? navigate('/premium') : setAmbientChoice(a.key))}
+                    >
+                      {a.label}
+                      {locked ? ' 🔒' : ''}
+                    </button>
+                  )
+                })}
+              </div>
+            )}
+
             {narrationOn && (
               <p className="faint text-center" style={{ fontSize: '0.82rem', marginTop: '0.6rem' }}>
                 들숨·멈춤·날숨에 “{SPOKEN.inhale} · {SPOKEN.hold} · {SPOKEN.exhale}” 음성이 안내됩니다

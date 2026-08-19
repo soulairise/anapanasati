@@ -248,3 +248,69 @@
   text-align: center;
   line-height: 1.65;
 }
+
+/* ── 나만의 패턴 편집기 (프리미엄) ─────────────────────── */
+.custom-editor {
+  margin-top: 1rem;
+  padding: 1.1rem;
+  border: 1px solid var(--line, rgba(0, 0, 0, 0.1));
+  border-radius: 14px;
+}
+.custom-editor__title {
+  margin: 0 0 0.9rem;
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+.custom-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.4rem 0;
+}
+.custom-row__name {
+  font-size: 1rem;
+}
+.custom-row__ctrl {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+/* 숫자 폭이 1초↔10초로 바뀔 때 버튼이 흔들리지 않게 폭을 고정한다 */
+.custom-row__val {
+  min-width: 3.4rem;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+  font-size: 1rem;
+}
+.custom-editor__sum {
+  margin: 0.9rem 0 0.5rem;
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
+/* ── 배경음 종류 고르기 ────────────────────────────────── */
+.ambient-picker {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  justify-content: center;
+  margin-top: 0.75rem;
+}
+.ambient-chip {
+  padding: 0.45rem 0.8rem;
+  font-size: 0.92rem;
+  border: 1px solid var(--line, rgba(0, 0, 0, 0.15));
+  border-radius: 999px;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+}
+.ambient-chip.active {
+  border-color: var(--clay-deep, #8a6f52);
+  background: var(--surface-2, rgba(0, 0, 0, 0.04));
+  font-weight: 600;
+}
+.ambient-chip.is-locked {
+  opacity: 0.55;
+}

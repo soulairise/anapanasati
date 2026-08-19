@@ -1,0 +1,132 @@
+.insight {
+  margin-top: 1rem;
+  padding: 1.15rem;
+  border: 1px solid var(--line, rgba(0, 0, 0, 0.1));
+  border-radius: 16px;
+}
+.insight--locked {
+  cursor: pointer;
+  text-align: center;
+}
+.insight__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.6rem;
+}
+.insight__title {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 600;
+}
+.insight__lead {
+  margin: 0.5rem 0 0;
+  font-size: 0.95rem;
+  line-height: 1.7;
+}
+.insight__ranges {
+  display: flex;
+  gap: 0.35rem;
+}
+.insight__range {
+  padding: 0.32rem 0.7rem;
+  font-size: 0.88rem;
+  border: 1px solid var(--line, rgba(0, 0, 0, 0.15));
+  border-radius: 999px;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+}
+.insight__range.active {
+  border-color: var(--clay-deep, #8a6f52);
+  background: var(--surface-2, rgba(0, 0, 0, 0.04));
+  font-weight: 600;
+}
+
+.insight__bars {
+  margin-top: 1rem;
+  display: grid;
+  gap: 0.65rem;
+}
+.insight__bar {
+  display: grid;
+  /* 라벨 폭을 고정해 막대의 시작점이 줄마다 흔들리지 않게 한다 */
+  grid-template-columns: 6.5rem 1fr auto;
+  align-items: center;
+  gap: 0.6rem;
+}
+.insight__bar-label {
+  font-size: 0.9rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.insight__bar-track {
+  height: 8px;
+  border-radius: 999px;
+  background: var(--surface-2, rgba(0, 0, 0, 0.06));
+  overflow: hidden;
+}
+.insight__bar-fill {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: var(--clay-deep, #8a6f52);
+}
+.insight__bar-val {
+  font-size: 0.9rem;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+  white-space: nowrap;
+}
+.insight__bar-sub {
+  display: block;
+  font-size: 0.78rem;
+  opacity: 0.6;
+}
+
+.insight__search {
+  display: block;
+  margin-top: 1.15rem;
+}
+.insight__search-label {
+  display: block;
+  font-size: 0.9rem;
+  margin-bottom: 0.4rem;
+}
+.insight__search-input {
+  width: 100%;
+  padding: 0.65rem 0.8rem;
+  font-size: 1rem; /* 16px 미만이면 iOS가 화면을 확대한다 */
+  border: 1px solid var(--line, rgba(0, 0, 0, 0.15));
+  border-radius: 10px;
+  background: transparent;
+  color: inherit;
+}
+
+.insight__hits {
+  margin-top: 0.85rem;
+}
+.insight__hit {
+  display: grid;
+  grid-template-columns: 4.5rem 1fr;
+  gap: 0.6rem;
+  padding: 0.45rem 0;
+  border-top: 1px solid var(--line, rgba(0, 0, 0, 0.07));
+  font-size: 0.92rem;
+  line-height: 1.65;
+}
+.insight__hit-date {
+  opacity: 0.6;
+  white-space: nowrap;
+}
+.insight__hit-note {
+  overflow-wrap: anywhere; /* 긴 단어가 칸을 넘지 않게 */
+}
+
+@media (max-width: 420px) {
+  .insight__bar {
+    grid-template-columns: 5.2rem 1fr auto;
+  }
+}
