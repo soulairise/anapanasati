@@ -116,6 +116,8 @@ export const sessionsApi = {
       // stage는 아나빠나사띠 전용. 다른 갈래는 0으로 둔다.
       stage: d.stage ?? (d.track && d.track !== 'anapanasati' ? 0 : 1),
       breath_pattern: d.breath_pattern ?? '',
+      // 실습별 결과 수치(브레스 카운팅 정확도 등). 추이 그래프가 이걸 읽는다.
+      metrics: d.metrics ?? {},
       focus_score: d.focus_score ?? 3,
       note: d.note ?? '',
       ai_feedback: d.ai_feedback ?? null,

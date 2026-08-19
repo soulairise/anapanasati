@@ -272,3 +272,72 @@
   vertical-align: middle;
   white-space: nowrap;
 }
+
+/* ---------- 수행 추이 (히트맵 · 카운팅 정확도) ---------- */
+.trend { display: grid; gap: var(--sp-3); margin-bottom: var(--sp-4); }
+.trend__block {
+  padding: var(--sp-3);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--bg-soft);
+}
+.trend__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: var(--sp-2);
+}
+.trend__head h2 { font-size: 1.05rem; }
+.trend__num { font-family: var(--font-serif); font-size: 1.35rem; color: var(--sage-deep); }
+
+/* 앉은 날 — 리셋 없는 누적 히트맵 */
+.trend__grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 5px;
+}
+.trend__daylabel {
+  font-size: 0.68rem;
+  color: var(--ink-faint);
+  text-align: center;
+  padding-bottom: 2px;
+}
+.trend__cell {
+  aspect-ratio: 1;
+  border-radius: 5px;
+  background: var(--bg-sunken);
+  transition: background 0.3s var(--ease);
+}
+.trend__cell.is-done { background: var(--sage); }
+.trend__cell.is-future { opacity: 0.35; }
+
+/* 카운팅 정확도 막대 */
+.trend__bars {
+  display: flex;
+  align-items: flex-end;
+  gap: 5px;
+  height: 84px;
+  padding-top: 4px;
+}
+.trend__bar {
+  flex: 1;
+  height: 100%;
+  display: flex;
+  align-items: flex-end;
+  background: var(--bg-sunken);
+  border-radius: 4px;
+  overflow: hidden;
+}
+.trend__bar-fill {
+  width: 100%;
+  background: linear-gradient(180deg, var(--sage), var(--sage-deep));
+  border-radius: 4px;
+  transition: height 0.6s var(--ease);
+}
+
+.trend__note {
+  margin-top: var(--sp-2);
+  font-size: 0.8rem;
+  color: var(--ink-faint);
+  line-height: 1.7;
+}

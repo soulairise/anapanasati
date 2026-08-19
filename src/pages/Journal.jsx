@@ -4,6 +4,7 @@ import { useAuth } from '../context/AuthContext'
 import { usePremium } from '../context/PremiumContext'
 import { sessionsApi, computeStats } from '../lib/store'
 import { describeSession } from '../lib/tracks'
+import JournalTrend from '../components/JournalTrend'
 import { formatDuration, formatDate } from '../lib/format'
 
 export default function Journal() {
@@ -26,7 +27,8 @@ export default function Journal() {
   // 기록은 전부 열람 무료.
   // 자기 기록을 잃는 느낌은 강한 불만으로 이어지고, 리텐션 장치를 유료화하면
   // 무료 사용자가 습관을 못 만들어 전환 대상 자체가 사라진다.
-  // 프리미엄은 기록이 아니라 "해석"(히트맵·추세·검색)을 판다. — docs/PRODUCT_STRATEGY.md 6-2
+  // 히트맵·이번 달 추이도 무료로 연다. 리텐션 장치를 유료화하면 무료 사용자가
+  // 습관을 못 만들어 전환 대상 자체가 사라진다. 프리미엄은 더 긴 기간의 분석·검색.
   const visible = sessions
 
   return (
@@ -57,6 +59,9 @@ export default function Journal() {
             <div className="label">평균 집중도</div>
           </div>
         </div>
+
+        {/* 추이 — 기록이 있을 때만 */}
+        {!loading && sessions.length > 0 && <JournalTrend sessions={sessions} />}
 
         {loading ? (
           <p className="muted text-center">불러오는 중…</p>
@@ -100,8 +105,9 @@ export default function Journal() {
               )
             })}
 
-            {/* 기록을 잠그지 않는다. 대신 "해석"을 제안한다. */}
-            {!isPremium && sessions.length >= 5 && (
+            {/* 히트맵·추이는 무료로 열었다(리텐션 장치를 유료화하면 습관이 안 생긴다).
+                프리미엄은 그보다 긴 기간의 분석·검색을 판다. */}
+            {!isPremium && sessions.length >= 12 && (
               <div
                 className="card"
                 style={{ padding: '1.25rem', textAlign: 'center', cursor: 'pointer', marginTop: '0.5rem' }}
@@ -109,7 +115,7 @@ export default function Journal() {
               >
                 기록이 <b>{sessions.length}개</b> 쌓였습니다 —{' '}
                 <span style={{ color: 'var(--clay-deep)', fontWeight: 500 }}>
-                  히트맵·추세로 되돌아보기
+                  긴 기간으로 되돌아보기
                 </span>
               </div>
             )}

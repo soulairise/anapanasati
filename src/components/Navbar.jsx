@@ -11,6 +11,7 @@ const PRACTICE_LINKS = [
   { to: '/breathe', label: '호흡하기', hint: '숨을 지켜보기' },
   { to: '/yoga', label: '요가 호흡', hint: '숨을 다스리기' },
   { to: '/vipassana', label: '관찰 수행', hint: '있는 그대로 보기' },
+  { to: '/metta', label: '마음 나누기', hint: '잘되기를 바라기' },
 ]
 
 export default function Navbar() {

@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useMemo } from 'react'
-import { useParams, useNavigate, Link } from 'react-router-dom'
+import { useParams, useNavigate, useSearchParams, Link } from 'react-router-dom'
 import {
   getPractice,
   getAttitude,
@@ -45,6 +45,10 @@ function BodyFigure({ y }) {
 export default function VipassanaSession() {
   const { id } = useParams()
   const navigate = useNavigate()
+  // ?attitude=accept — 같은 실습을 MBSR 프레이밍으로 연다.
+  // 실습을 새로 만들지 않고 태도만 바꾸는 구조의 실제 진입점이다.
+  const [params] = useSearchParams()
+  const attitudeKey = params.get('attitude') === 'accept' ? 'accept' : 'observe'
   const p = getPractice(id)
 
   const [phase, setPhase] = useState('setup') // setup | running | done
@@ -124,7 +128,7 @@ export default function VipassanaSession() {
     )
   }
 
-  const attitude = getAttitude(p, 'observe')
+  const attitude = getAttitude(p, attitudeKey)
   const needConsent = p.requireConsent && !consented
 
   const spawnRipple = () => {
@@ -147,8 +151,10 @@ export default function VipassanaSession() {
         track: 'vipassana',
         practice: id,
         duration_sec: Math.round(Math.min(elapsed, totalSec)),
-        // 카운팅은 숫자가 곧 결과다. 일지에서 추이를 볼 수 있게 요약을 실어 보낸다.
+        // 카운팅은 숫자가 곧 결과다. 사람이 읽을 요약은 breath_pattern에,
+        // 그래프가 읽을 수치는 metrics에 따로 담는다(문자열 파싱은 깨지기 쉽다).
         breath_pattern: p.engine === 'counting' ? summaryText(countSummary()) : '',
+        metrics: p.engine === 'counting' ? countMetrics(countSummary()) : {},
       },
     })
   }
@@ -246,8 +252,8 @@ export default function VipassanaSession() {
       <div className="page vipassana-theme">
         <div className="container container--narrow vp-session">
           <header className="page-head text-center">
-            <p className="eyebrow">{p.context}</p>
-            <h1 style={{ fontSize: '1.6rem' }}>{p.title}</h1>
+            <p className="eyebrow">{attitude.context}</p>
+            <h1 style={{ fontSize: '1.6rem' }}>{attitude.title}</h1>
           </header>
 
           {needConsent ? (
@@ -522,6 +528,12 @@ function CountingStage({ pulse, onLow, onNine, onReset }) {
       </button>
     </div>
   )
+}
+
+// 그래프가 읽을 수치 (문자열 파싱 대신)
+function countMetrics(s) {
+  if (!s.total) return {}
+  return { kind: 'counting', acc: s.acc, correct: s.correct, miss: s.miss, caught: s.caught }
 }
 
 // 일지에 남길 한 줄

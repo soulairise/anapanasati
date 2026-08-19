@@ -9,11 +9,13 @@
 import { getStage } from '../data/stages'
 import { getTechnique } from '../data/pranayama'
 import { getPractice } from '../data/vipassana'
+import { getPractice as getMetta } from '../data/metta'
 
 export const TRACKS = {
   anapanasati: { key: 'anapanasati', label: '호흡하기', icon: '🫧', to: '/breathe' },
   yoga: { key: 'yoga', label: '요가 호흡', icon: '🌀', to: '/yoga' },
   vipassana: { key: 'vipassana', label: '관찰 수행', icon: '💧', to: '/vipassana' },
+  metta: { key: 'metta', label: '마음 나누기', icon: '💛', to: '/metta' },
 }
 
 export const getTrack = (key) => TRACKS[key] || TRACKS.anapanasati
@@ -44,6 +46,16 @@ export function describeSession(s) {
       // 브레스 카운팅은 결과 숫자가 곧 내용이라 그걸 우선 보여준다.
       detail: s.breath_pattern || p?.context || '',
       backTo: p ? `/vipassana/${p.id}` : '/vipassana',
+    }
+  }
+
+  if (track.key === 'metta') {
+    const m = getMetta(s.practice)
+    return {
+      track,
+      title: m?.title || '마음 나누기',
+      detail: m?.context || '',
+      backTo: m ? `/metta/${m.id}` : '/metta',
     }
   }
 

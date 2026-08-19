@@ -5,6 +5,7 @@ import { usePremium } from '../context/PremiumContext'
 import { getAudioContext, INHALE_FREQ, EXHALE_FREQ } from '../lib/bowl'
 import { playBreathTone } from '../lib/breathTone'
 import { useWakeLock, wakeLockSupported } from '../lib/useWakeLock'
+import { startBreathMic, micSupported } from '../lib/breathMic'
 import { createAmbient } from '../lib/ambient'
 import { speak, stopNarration, primeNarration, PHASE_WORDS, SPOKEN } from '../lib/narration'
 import './Breathe.css'
@@ -79,6 +80,12 @@ export default function Breathe() {
   // 명상은 눈을 감고 하는 건데 화면을 보라고 요구하는 모순을 푼다.
   const [dimmed, setDimmed] = useState(false)
   const [eyesClosedOn, setEyesClosedOn] = useState(true)
+  // 마이크 날숨 감지 — 옵션. 오브가 "내 숨"에 반응하게 만드는 상호작용 요소다.
+  const [micOn, setMicOn] = useState(false)
+  const [micLevel, setMicLevel] = useState(0)
+  const [micNote, setMicNote] = useState('')
+  const micRef = useRef(null)
+  const micNoteRef = useRef(false)
 
   const tickRef = useRef(null)
   const bowlRef = useRef(null) // 현재 울리는 싱잉볼 핸들
@@ -93,6 +100,50 @@ export default function Breathe() {
 
   // 화면이 잠기면 iOS는 Web Audio를 죽인다. 눈감기 모드와 한 세트다.
   useWakeLock(running)
+
+  // 마이크는 수행 중에만 연다. 끝나면 트랙을 반드시 닫는다(권한 표시가 남지 않게).
+  useEffect(() => {
+    if (!running || !micOn) {
+      if (micRef.current) {
+        micRef.current.stop()
+        micRef.current = null
+      }
+      setMicLevel(0)
+      return
+    }
+    let alive = true
+    setMicNote('주변 소리를 재는 중…')
+    startBreathMic({
+      onLevel: (v) => {
+        if (!alive) return
+        setMicLevel(v)
+        if (micNoteRef.current && micRef.current && !micRef.current.calibrating()) {
+          micNoteRef.current = false
+          setMicNote('')
+        }
+      },
+      onError: (msg) => {
+        if (!alive) return
+        setMicNote(msg)
+        setMicOn(false)
+      },
+    }).then((h) => {
+      if (!alive) {
+        h.stop()
+        return
+      }
+      micRef.current = h
+      micNoteRef.current = true
+    })
+    return () => {
+      alive = false
+      if (micRef.current) {
+        micRef.current.stop()
+        micRef.current = null
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [running, micOn])
 
   // 배경음 시작 (파도/모닥불 랜덤)
   const startAmbient = () => {
@@ -379,6 +430,30 @@ export default function Breathe() {
               </p>
             )}
 
+            {/* 마이크 날숨 감지 — 옵션. 화면이 "내 숨"에 반응하게 한다. */}
+            {micSupported() && (
+              <>
+                <div className="setting-row" style={{ marginTop: '1rem', justifyContent: 'center' }}>
+                  <button
+                    className={`sound-toggle ${micOn ? '' : 'is-off'}`}
+                    onClick={() => setMicOn((v) => !v)}
+                  >
+                    {micOn ? '🎤 내 날숨에 반응' : '🎤 마이크 끔'}
+                  </button>
+                </div>
+                {micOn && (
+                  <p className="faint text-center" style={{ fontSize: '0.8rem', marginTop: '0.5rem', lineHeight: 1.7 }}>
+                    날숨을 마이크로 감지해 원이 반응합니다.
+                    <b> 소리는 기기 밖으로 나가지 않고 녹음도 되지 않습니다.</b>
+                    <br />조용한 코호흡은 잘 안 잡힙니다. 블루투스 이어폰보다 기기 마이크가 낫습니다.
+                  </p>
+                )}
+                {micNote && (
+                  <p className="faint text-center" style={{ fontSize: '0.8rem', marginTop: '0.4rem' }}>{micNote}</p>
+                )}
+              </>
+            )}
+
             {/* 눈감기 모드 — 명상의 본래 자세로 돌려보내는 장치 */}
             <div className="setting-row" style={{ marginTop: '1.2rem', justifyContent: 'center' }}>
               <button
@@ -422,7 +497,11 @@ export default function Breathe() {
                   className="breath-orb"
                   style={{
                     ...stageVars,
-                    transform: `scale(${orbScale})`,
+                    // 마이크가 켜져 있고 날숨 구간이면 실제 숨 세기를 얹는다.
+                    // 타이머는 그대로 두고 "반응"만 더한다 — 감지가 실패해도 수행은 안 끊긴다.
+                    transform: `scale(${
+                      micOn && phaseIdx === 2 ? orbScale + micLevel * 0.22 : orbScale
+                    })`,
                   }}
                 >
                   <span>{preparing ? '' : phaseRemain}</span>

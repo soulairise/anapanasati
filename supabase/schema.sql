@@ -13,6 +13,8 @@ create table if not exists public.sessions (
   -- 3갈래 공용 확장 (2026-08): anapanasati | yoga | vipassana
   track          text not null default 'anapanasati',
   practice       text not null default '',   -- yoga/vipassana 실습 id (anapanasati는 stage로 식별)
+  -- 실습별 결과 수치. 실습마다 남는 숫자가 달라 컬럼을 늘리는 대신 jsonb로 받는다.
+  metrics        jsonb not null default '{}'::jsonb,
   focus_score    int  not null default 3,
   note           text not null default '',
   ai_feedback    text,

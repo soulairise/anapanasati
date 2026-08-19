@@ -1,0 +1,195 @@
+/* ============================================================
+   자애(마음 나누기) 화면 — 네 번째 장르 색
+
+   아나빠나사띠 세이지 · 요가 테라코타 · 관찰 슬레이트인디고에 이어
+   따뜻한 로즈. 관찰이 "거리를 두고 보는" 색이라면 자애는 "다가가는" 색이다.
+   ============================================================ */
+
+.metta-theme {
+  --sage: #c08497;        /* 따뜻한 로즈 */
+  --sage-deep: #9c6478;
+  --bg: #f8f3f4;
+  --bg-soft: #fdfafb;
+  --bg-sunken: #f1e5e8;
+
+  background: var(--bg);
+}
+
+/* ---------- 허브 ---------- */
+.mt-concept { padding: var(--sp-4); margin-bottom: var(--sp-3); }
+.mt-concept h2 { font-size: 1.5rem; margin: 0.2rem 0 var(--sp-2); }
+.mt-concept__body { color: var(--ink-soft); line-height: 1.85; }
+
+.mt-vs { display: grid; grid-template-columns: 1fr 1fr; gap: var(--sp-2); margin-top: var(--sp-3); }
+.mt-vs__item { padding: var(--sp-2); background: var(--bg-sunken); border-radius: 12px; text-align: center; }
+.mt-vs__item--accent { background: var(--sage); color: #fff; }
+.mt-vs__item--accent .mt-vs__pali,
+.mt-vs__item--accent p { color: rgba(255, 255, 255, 0.88); }
+.mt-vs__label { font-family: var(--font-serif); font-weight: 700; font-size: 1rem; }
+.mt-vs__pali { display: block; font-size: 0.78rem; color: var(--ink-faint); margin-top: 1px; }
+.mt-vs__item p { font-size: 0.88rem; color: var(--ink-soft); margin-top: 0.45rem; line-height: 1.65; }
+.mt-vs__note { margin-top: var(--sp-2); font-size: 0.88rem; color: var(--ink-faint); line-height: 1.75; }
+
+/* 대상 순서 */
+.mt-targets { display: grid; gap: 0.5rem; margin-top: var(--sp-1); }
+.mt-target {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  padding: var(--sp-2);
+  background: var(--bg-sunken);
+  border-radius: 12px;
+}
+.mt-target__num {
+  flex-shrink: 0;
+  width: 26px; height: 26px;
+  border-radius: 50%;
+  background: var(--sage);
+  color: #fff;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.8rem; font-weight: 600;
+}
+.mt-target b { font-size: 0.95rem; }
+.mt-target .muted { display: block; font-size: 0.82rem; margin-top: 1px; }
+
+/* 사무량심 */
+.mt-four { display: grid; grid-template-columns: repeat(2, 1fr); gap: var(--sp-2); margin-top: var(--sp-1); }
+.mt-four__item {
+  display: flex; flex-direction: column; gap: 2px;
+  padding: var(--sp-2);
+  background: var(--bg-sunken);
+  border-radius: 12px;
+  font-size: 0.88rem;
+}
+.mt-four__item .faint { font-size: 0.75rem; font-style: italic; }
+.mt-four__item .muted { font-size: 0.8rem; line-height: 1.6; }
+
+/* 이익 */
+.mt-benefits { padding: var(--sp-3) var(--sp-4); margin-bottom: var(--sp-3); }
+.mt-benefits ul { margin: var(--sp-1) 0 0; padding-left: 1.1rem; }
+.mt-benefits li { font-size: 0.92rem; color: var(--ink-soft); line-height: 1.9; }
+
+/* 안전 */
+.mt-safety {
+  padding: var(--sp-3);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--bg-soft);
+  margin-bottom: var(--sp-4);
+}
+.mt-safety__title { font-family: var(--font-serif); font-weight: 700; margin-bottom: 0.6rem; }
+.mt-safety ul { margin: 0; padding-left: 1.1rem; }
+.mt-safety li { font-size: 0.9rem; color: var(--ink-soft); line-height: 1.75; margin-bottom: 0.4rem; }
+
+.mt-card-meta { display: flex; align-items: center; gap: 0.4rem; font-size: 0.8rem; color: var(--ink-faint); margin-top: 0.15rem; }
+.mt-badge { padding: 0.12rem 0.5rem; border-radius: 999px; background: var(--bg-sunken); font-size: 0.75rem; }
+
+/* ---------- 상세 ---------- */
+.mt-detail-section { margin-top: var(--sp-4); }
+.mt-steps { padding-left: 1.2rem; }
+.mt-steps li { color: var(--ink-soft); line-height: 1.85; margin-bottom: 0.5rem; }
+.mt-phrase-list { display: flex; flex-wrap: wrap; gap: 0.4rem; }
+.mt-phrase-chip {
+  padding: 0.35rem 0.85rem;
+  border-radius: 999px;
+  background: var(--bg-sunken);
+  color: var(--sage-deep);
+  font-family: var(--font-serif);
+  font-size: 0.95rem;
+}
+
+.mt-origin {
+  margin-top: var(--sp-4);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--bg-soft);
+  overflow: hidden;
+}
+.mt-origin > summary {
+  padding: var(--sp-2) var(--sp-3);
+  cursor: pointer;
+  font-size: 0.92rem;
+  color: var(--ink-soft);
+  list-style: none;
+}
+.mt-origin > summary::-webkit-details-marker { display: none; }
+.mt-origin > summary::before { content: '▸ '; color: var(--ink-faint); }
+.mt-origin[open] > summary::before { content: '▾ '; }
+.mt-origin__body { padding: 0 var(--sp-3) var(--sp-3); font-size: 0.9rem; color: var(--ink-soft); line-height: 1.8; }
+
+/* ---------- 세션 ---------- */
+.mt-stage {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--sp-2);
+  min-height: 440px;
+  justify-content: center;
+  transition: opacity 2.5s var(--ease);
+}
+.mt-stage.is-dimmed { opacity: 0.07; cursor: pointer; }
+
+/* 아주 느린 맥동 — 호흡을 지시하지 않는다. 마음이 머물 자리일 뿐이다. */
+.mt-heart {
+  width: 128px;
+  height: 128px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 36% 32%, rgba(255, 255, 255, 0.9), var(--sage) 72%);
+  box-shadow: 0 12px 44px rgba(156, 100, 120, 0.26);
+  animation: mtGlow 7s ease-in-out infinite;
+}
+@keyframes mtGlow {
+  0%, 100% { transform: scale(0.96); }
+  50%      { transform: scale(1.04); }
+}
+
+.mt-target-label {
+  font-family: var(--font-serif);
+  font-size: 1.05rem;
+  color: var(--sage-deep);
+  animation: mtIn 1s var(--ease);
+}
+.mt-phrase {
+  font-family: var(--font-serif);
+  font-size: 1.5rem;
+  color: var(--ink);
+  text-align: center;
+  line-height: 1.6;
+  min-height: 3.2rem;
+  animation: mtIn 1.1s var(--ease);
+}
+@keyframes mtIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.mt-progress { display: flex; gap: 0.45rem; margin-top: 0.2rem; }
+.mt-dot {
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  background: var(--bg-sunken);
+  transition: all 0.5s var(--ease);
+}
+.mt-dot.is-now { background: var(--sage); transform: scale(1.5); }
+
+.mt-closing {
+  font-family: var(--font-serif);
+  font-size: 1.35rem;
+  line-height: 1.8;
+  color: var(--ink);
+  text-align: center;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mt-heart { animation: none; }
+  .mt-target-label, .mt-phrase { animation: none; }
+  .mt-stage { transition: opacity 0.4s linear; }
+}
+
+@media (max-width: 640px) {
+  .mt-vs { grid-template-columns: 1fr; }
+  .mt-four { grid-template-columns: 1fr; }
+  .mt-concept { padding: var(--sp-3); }
+  .mt-heart { width: 106px; height: 106px; }
+  .mt-phrase { font-size: 1.3rem; }
+}

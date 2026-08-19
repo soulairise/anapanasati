@@ -190,6 +190,7 @@ export const PRACTICES = [
         closing: '어떤 숨도 머물지 않았습니다',
       },
       accept: {
+        title: '호흡 알아차림', context: '1주차 · 자동조종에서 깨어나기',
         cue: '좋다 나쁘다 판단하지 말고, 있는 그대로 둡니다',
         closing: '지금 이 순간으로 돌아옵니다',
       },
@@ -227,6 +228,7 @@ export const PRACTICES = [
         closing: '어떤 감각도 머물지 않았습니다',
       },
       accept: {
+        title: '바디스캔', context: '1–2주차 · 매일 45분',
         cue: '좋다 나쁘다 판단하지 말고, 있는 그대로 알아차립니다',
         closing: '지금 이 순간으로 돌아옵니다',
       },
@@ -270,7 +272,8 @@ export const PRACTICES = [
     ],
     attitudes: {
       observe: { cue: '세 박자를 나눠서 알아차립니다', closing: '한 걸음도 머물지 않았습니다' },
-      accept: { cue: '걷는 감각을 판단 없이 알아차립니다', closing: '지금 이 걸음으로 돌아옵니다' },
+      accept: { title: '걷기 명상', context: '3–4주차',
+        cue: '걷는 감각을 판단 없이 알아차립니다', closing: '지금 이 걸음으로 돌아옵니다' },
     },
   },
 
@@ -306,6 +309,7 @@ export const PRACTICES = [
         closing: '놓친 것을 알아차린 그 순간이 수행이었습니다',
       },
       accept: {
+        title: '호흡 세기', context: '집중 훈련',
         cue: '틀려도 괜찮습니다. 알아차리고 다시 시작합니다',
         closing: '지금 이 순간으로 돌아옵니다',
       },
@@ -348,7 +352,8 @@ export const PRACTICES = [
     ],
     attitudes: {
       observe: { cue: '느낌에 붙는 색을 봅니다', closing: '어떤 느낌도 머물지 않았습니다' },
-      accept: { cue: '느낌을 바꾸려 하지 않고 그대로 둡니다', closing: '지금 이 순간으로 돌아옵니다' },
+      accept: { title: '유쾌·불쾌 알아차리기', context: '4주차 · 지각과 반응',
+        cue: '느낌을 바꾸려 하지 않고 그대로 둡니다', closing: '지금 이 순간으로 돌아옵니다' },
     },
   },
 
@@ -387,7 +392,8 @@ export const PRACTICES = [
     ],
     attitudes: {
       observe: { cue: '마음의 상태를 한 걸음 뒤에서 봅니다', closing: '마음도 머물지 않았습니다' },
-      accept: { cue: '어떤 마음이든 밀어내지 않고 그대로 둡니다', closing: '지금 이 순간으로 돌아옵니다' },
+      accept: { title: '생각을 생각으로 보기', context: '5주차 · 있는 그대로 두기',
+        cue: '어떤 마음이든 밀어내지 않고 그대로 둡니다', closing: '지금 이 순간으로 돌아옵니다' },
     },
   },
 
@@ -421,7 +427,8 @@ export const PRACTICES = [
     requireConsent: true,
     attitudes: {
       observe: { cue: '무엇이 오든 붙잡지 않고 지켜봅니다', closing: '무엇도 머물지 않았습니다' },
-      accept: { cue: '무엇이 오든 밀어내지 않고 그대로 둡니다', closing: '지금 이 순간에 머뭅니다' },
+      accept: { title: '선택 없는 알아차림', context: '6주차 · 열린 현존',
+        cue: '무엇이 오든 밀어내지 않고 그대로 둡니다', closing: '지금 이 순간에 머뭅니다' },
     },
   },
 ]
@@ -430,9 +437,22 @@ export const PRACTICES = [
 export const getPractice = (id) => PRACTICES.find((p) => p.id === id)
 export const getPracticesByLevel = (level) => PRACTICES.filter((p) => p.level === level)
 
-/** 태도(observe/accept)에 맞는 안내 문구. 기본은 관찰(observe). */
-export const getAttitude = (practice, attitude = 'observe') =>
-  practice?.attitudes?.[attitude] || practice?.attitudes?.observe || {}
+/**
+ * 태도(observe/accept)에 맞는 안내를 푼다. 기본은 관찰(observe).
+ *
+ * accept는 MBSR이 같은 실습을 다른 프레이밍으로 쓸 때의 경로다.
+ * 같은 바디스캔이라도 관찰은 "무상을 본다", 수용은 "판단하지 않는다"로
+ * 안내가 달라야 해서, 문구뿐 아니라 이름·맥락까지 태도가 갖고 있다.
+ * MBSR을 붙일 때 실습을 새로 만들 필요 없이 attitude만 넘기면 된다.
+ */
+export const getAttitude = (practice, attitude = 'observe') => {
+  const a = practice?.attitudes?.[attitude] || practice?.attitudes?.observe || {}
+  return {
+    ...a,
+    title: a.title || practice?.title || '',
+    context: a.context || practice?.context || '',
+  }
+}
 
 /**
  * guided 스크립트를 총 시간(초)에 맞춰 구간 경계로 변환.
