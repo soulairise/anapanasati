@@ -419,3 +419,119 @@
   .vp-beat { font-size: 1.7rem; }
   .vp-stage { min-height: 400px; }
 }
+
+/* ---------- 브레스 카운팅 ---------- */
+/*
+  눈을 감고도 누를 수 있어야 해서 버튼을 크게, 위아래로 확실히 나눈다.
+  화면에는 숫자를 띄우지 않는다 — 세는 일은 마음이 해야 한다.
+*/
+.vp-count {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: var(--sp-2);
+  width: 100%;
+  max-width: 22rem;
+}
+
+.vp-count__low,
+.vp-count__nine {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.2rem;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--line);
+  background: var(--bg-soft);
+  transition: transform 0.12s var(--ease), background 0.25s var(--ease), border-color 0.25s var(--ease);
+}
+.vp-count__low { min-height: 190px; }
+.vp-count__nine { min-height: 96px; }
+
+.vp-count__low.is-tap,
+.vp-count__nine.is-tap {
+  background: var(--sage);
+  border-color: var(--sage-deep);
+  transform: scale(0.985);
+}
+.vp-count__low.is-tap .vp-count__mark,
+.vp-count__nine.is-tap .vp-count__mark,
+.vp-count__low.is-tap .vp-count__hint,
+.vp-count__nine.is-tap .vp-count__hint { color: #fff; }
+
+.vp-count__mark {
+  font-size: 2.4rem;
+  line-height: 1;
+  color: var(--sage-deep);
+}
+.vp-count__nine .vp-count__mark { font-size: 1.9rem; }
+.vp-count__hint {
+  font-size: 0.85rem;
+  color: var(--ink-faint);
+}
+
+.vp-count__reset {
+  padding: 0.6rem;
+  border-radius: 999px;
+  border: 1px dashed var(--line);
+  background: transparent;
+  color: var(--ink-faint);
+  font-size: 0.85rem;
+  transition: all 0.2s var(--ease);
+}
+.vp-count__reset.is-tap,
+.vp-count__reset:hover { border-color: var(--sage); color: var(--sage-deep); }
+
+/* ---------- 카운팅 결과 ---------- */
+.vp-count-result {
+  width: 100%;
+  max-width: 20rem;
+  margin-top: var(--sp-3);
+  padding: var(--sp-3);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--bg-soft);
+}
+.vp-count-result__acc {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: var(--sp-2);
+}
+.vp-count-result__acc b {
+  font-family: var(--font-serif);
+  font-size: 2.4rem;
+  color: var(--sage-deep);
+  line-height: 1.1;
+}
+.vp-count-result__acc span { font-size: 0.82rem; color: var(--ink-faint); }
+
+.vp-count-result__rows { display: flex; flex-direction: column; gap: 0.35rem; }
+.vp-count-result__rows > div {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.9rem;
+  color: var(--ink-soft);
+}
+.vp-count-result__rows b { color: var(--ink); }
+/* 스스로 알아챈 것은 실패가 아니라 성과다 */
+.vp-count-result__rows .is-good span,
+.vp-count-result__rows .is-good b { color: var(--sage-deep); font-weight: 600; }
+
+.vp-count-result__note {
+  margin-top: var(--sp-2);
+  padding-top: var(--sp-2);
+  border-top: 1px solid var(--line);
+  font-size: 0.85rem;
+  color: var(--ink-soft);
+  line-height: 1.75;
+  text-align: center;
+}
+.vp-count-result__empty {
+  margin-top: var(--sp-2);
+  font-size: 0.9rem;
+  color: var(--ink-faint);
+  text-align: center;
+  line-height: 1.7;
+}

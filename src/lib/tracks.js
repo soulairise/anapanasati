@@ -41,7 +41,8 @@ export function describeSession(s) {
     return {
       track,
       title: p?.title || '관찰 수행',
-      detail: p?.context || '',
+      // 브레스 카운팅은 결과 숫자가 곧 내용이라 그걸 우선 보여준다.
+      detail: s.breath_pattern || p?.context || '',
       backTo: p ? `/vipassana/${p.id}` : '/vipassana',
     }
   }

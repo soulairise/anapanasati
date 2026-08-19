@@ -56,6 +56,14 @@ export default function VipassanaSession() {
   const [notingOn, setNotingOn] = useState(false)
 
   const [elapsed, setElapsed] = useState(0) // 초
+
+  // 브레스 카운팅 채점.
+  // Levinson et al. 2014: 1~8은 A, 9는 B. 9에서 A가 정확히 8번이었으면 맞은 묶음.
+  // 핵심은 오류를 둘로 나누는 것 — 모르고 틀린 것(주의 실패)과
+  // 스스로 알아채고 다시 시작한 것(마음방황을 알아차림)은 의미가 정반대다.
+  const [tally, setTally] = useState({ correct: 0, miss: 0, caught: 0 })
+  const cycleRef = useRef(0) // 현재 묶음에서 ○를 누른 횟수
+  const [pulse, setPulse] = useState(null) // 눌렀다는 최소한의 피드백
   const [ripples, setRipples] = useState([])
   const [bellFlash, setBellFlash] = useState(false)
 
@@ -98,6 +106,8 @@ export default function VipassanaSession() {
     cleanup()
     setPhase('setup')
     setElapsed(0)
+    setTally({ correct: 0, miss: 0, caught: 0 })
+    cycleRef.current = 0
     setConsented(false)
     setMinutes(p?.durations?.[0] ?? 10)
     setSpeedKey(p?.speeds?.[1]?.key ?? 'normal')
@@ -137,9 +147,38 @@ export default function VipassanaSession() {
         track: 'vipassana',
         practice: id,
         duration_sec: Math.round(Math.min(elapsed, totalSec)),
-        breath_pattern: '',
+        // 카운팅은 숫자가 곧 결과다. 일지에서 추이를 볼 수 있게 요약을 실어 보낸다.
+        breath_pattern: p.engine === 'counting' ? summaryText(countSummary()) : '',
       },
     })
+  }
+
+  // ---- 브레스 카운팅 입력 ----
+  const flash = (kind) => {
+    setPulse(kind)
+    setTimeout(() => setPulse(null), 260)
+  }
+  const tapLow = () => {
+    cycleRef.current += 1
+    flash('low')
+  }
+  const tapNine = () => {
+    const ok = cycleRef.current === 8
+    setTally((t) => ({ ...t, correct: t.correct + (ok ? 1 : 0), miss: t.miss + (ok ? 0 : 1) }))
+    cycleRef.current = 0
+    flash(ok ? 'nine' : 'nine')
+  }
+  const tapReset = () => {
+    // 세다 놓친 걸 알아차린 것. 실패가 아니라 알아차림이므로 따로 센다.
+    setTally((t) => ({ ...t, caught: t.caught + 1 }))
+    cycleRef.current = 0
+    flash('reset')
+  }
+
+  const countSummary = () => {
+    const total = tally.correct + tally.miss
+    const acc = total ? Math.round((tally.correct / total) * 100) : null
+    return { ...tally, total, acc }
   }
 
   const start = () => {
@@ -151,6 +190,8 @@ export default function VipassanaSession() {
     lastMarkRef.current = -1
     startedAtRef.current = Date.now()
     setElapsed(0)
+    setTally({ correct: 0, miss: 0, caught: 0 })
+    cycleRef.current = 0
     setPhase('running')
     if (soundOn) playBell()
     spawnRipple()
@@ -312,6 +353,8 @@ export default function VipassanaSession() {
             <p className="muted text-center" style={{ marginTop: '0.5rem' }}>
               {mmss(Math.min(elapsed, totalSec))} 앉으셨습니다.
             </p>
+
+            {p.engine === 'counting' && <CountResult s={countSummary()} />}
             <div className="breathe-controls" style={{ marginTop: '1.5rem' }}>
               <button className="btn btn--ghost" onClick={() => setPhase('setup')}>한 번 더</button>
               <button className="btn btn--primary" onClick={goRecord}>일지에 남기기</button>
@@ -352,6 +395,9 @@ export default function VipassanaSession() {
 
           {p.engine === 'guided' && <GuidedText timeline={timeline} elapsed={elapsed} />}
           {p.engine === 'open' && <OpenText flash={bellFlash} cue={attitude.cue} />}
+          {p.engine === 'counting' && (
+            <CountingStage pulse={pulse} onLow={tapLow} onNine={tapNine} onReset={tapReset} />
+          )}
           {p.engine === 'scan' && <ScanStage seq={scanSeq} elapsed={elapsed} totalSec={totalSec} cue={attitude.cue} />}
           {p.engine === 'walking' && <WalkingStage practice={p} elapsed={elapsed} beatSec={speed.sec} />}
 
@@ -437,5 +483,77 @@ function OpenText({ flash, cue }) {
     <p className="vp-bell-flash">지금 무엇이 알아차려지고 있나요?</p>
   ) : (
     <p className="vp-open-hint">{cue}</p>
+  )
+}
+
+/* ---------- 브레스 카운팅 ---------- */
+
+// 화면에 숫자를 띄우지 않는다. 세는 일은 사용자 마음이 해야 하고,
+// 화면이 세어주면 측정 자체가 무의미해진다. 눌렀다는 최소한의 반응만 준다.
+function CountingStage({ pulse, onLow, onNine, onReset }) {
+  return (
+    <div className="vp-count">
+      <button
+        type="button"
+        className={`vp-count__low ${pulse === 'low' ? 'is-tap' : ''}`}
+        onClick={onLow}
+        aria-label="하나에서 여덟"
+      >
+        <span className="vp-count__mark">○</span>
+        <span className="vp-count__hint">하나 ~ 여덟</span>
+      </button>
+
+      <button
+        type="button"
+        className={`vp-count__nine ${pulse === 'nine' ? 'is-tap' : ''}`}
+        onClick={onNine}
+        aria-label="아홉"
+      >
+        <span className="vp-count__mark">●</span>
+        <span className="vp-count__hint">아홉</span>
+      </button>
+
+      <button
+        type="button"
+        className={`vp-count__reset ${pulse === 'reset' ? 'is-tap' : ''}`}
+        onClick={onReset}
+      >
+        놓쳤어요 · 다시 １부터
+      </button>
+    </div>
+  )
+}
+
+// 일지에 남길 한 줄
+function summaryText(s) {
+  if (!s.total) return '세어보기'
+  return `정확도 ${s.acc}% · ${s.correct}/${s.total}묶음 · 스스로 알아챔 ${s.caught}회`
+}
+
+function CountResult({ s }) {
+  if (!s.total) {
+    return (
+      <p className="vp-count-result__empty">
+        아직 한 묶음도 마치지 않으셨네요. 다음엔 아홉까지 한 번 세어보세요.
+      </p>
+    )
+  }
+  return (
+    <div className="vp-count-result">
+      <div className="vp-count-result__acc">
+        <b>{s.acc}%</b>
+        <span>정확도</span>
+      </div>
+      <div className="vp-count-result__rows">
+        <div><span>맞은 묶음</span><b>{s.correct}</b></div>
+        <div><span>모르고 틀림</span><b>{s.miss}</b></div>
+        <div className="is-good"><span>스스로 알아챔</span><b>{s.caught}</b></div>
+      </div>
+      <p className="vp-count-result__note">
+        {s.caught > 0
+          ? `딴생각을 ${s.caught}번 스스로 잡아내셨습니다. 그 알아차림이 수행입니다.`
+          : '숫자를 잘 맞히는 것이 목적이 아닙니다. 놓친 것을 알아차리는 순간이 수행입니다.'}
+      </p>
+    </div>
   )
 }
