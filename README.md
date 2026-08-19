@@ -72,7 +72,7 @@ Supabase 연동 시 이 파일의 `auth`·`sessionsApi` 함수 내부만 Supabas
 
 ## 저작권
 
-**Copyright © 2026 소울매트 · 김만영. All rights reserved.**
+**Copyright © 2026 소울메이트 · 김만영. All rights reserved.**
 
 이 저장소의 소스와 콘텐츠는 저작권 보호를 받습니다.
 서면 허락 없이 복제·배포·2차적저작물 작성·상업적 이용·기계학습 데이터 수집을 금합니다.
