@@ -1,6 +1,6 @@
 import { createContext, useContext, useEffect, useState } from 'react'
 import { useLocation } from 'react-router-dom'
-import { resolveFace, storeFace } from '../lib/face'
+import { resolveFace, storeFace, faceInQuery } from '../lib/face'
 
 // ============================================================
 // 해와 달 — 앱 전체가 아는 상태
@@ -19,6 +19,17 @@ export function FaceProvider({ children }) {
   const { search, pathname } = useLocation()
   const [face, setFace] = useState(() => resolveFace(search))
   const isHome = pathname === '/'
+
+  // 주소로 얼굴이 지정되면 그때마다 따른다.
+  // useState 초기화 함수는 처음 한 번만 돈다. 이게 없으면 앱 안에서
+  // ?sun 링크를 눌러도 화면이 그대로다 — 전체 새로고침일 때만 먹혔다.
+  useEffect(() => {
+    const wanted = faceInQuery(search)
+    if (wanted) {
+      setFace(wanted)
+      storeFace(wanted)
+    }
+  }, [search])
 
   // 팔레트는 홈에서만. 나갈 때 반드시 뗀다.
   useEffect(() => {

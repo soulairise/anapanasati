@@ -44,17 +44,17 @@ const readStored = () => {
  * 주소로 온 값은 저장한다. 달 문으로 들어온 사람이 다음에 낮에 와도
  * 그 사람이 아는 얼굴로 맞는 편이 낫다.
  */
-export function resolveFace(search = '') {
+/** 주소에 얼굴이 지정돼 있으면 그 값을, 없으면 null. */
+export function faceInQuery(search = '') {
   const p = new URLSearchParams(search)
-  for (const f of FACES) {
-    if (p.has(f)) {
-      try {
-        localStorage.setItem(KEY, f)
-      } catch {
-        /* 저장 못 해도 이번 방문은 적용된다 */
-      }
-      return f
-    }
+  return FACES.find((f) => p.has(f)) || null
+}
+
+export function resolveFace(search = '') {
+  const fromUrl = faceInQuery(search)
+  if (fromUrl) {
+    storeFace(fromUrl)
+    return fromUrl
   }
   return readStored() || faceByClock()
 }
