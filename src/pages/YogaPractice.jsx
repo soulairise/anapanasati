@@ -3,6 +3,7 @@ import { useParams, useNavigate, Link } from 'react-router-dom'
 import { getTechnique } from '../data/pranayama'
 import { playYogaBreath, playYogaPulse } from '../lib/yogaSound'
 import { getAudioContext } from '../lib/bowl'
+import { useWakeLock, wakeLockSupported } from '../lib/useWakeLock'
 import './Yoga.css'
 
 const DURATIONS = [2, 3, 5]
@@ -68,6 +69,8 @@ export default function YogaPractice() {
   const [running, setRunning] = useState(false)
   const [consented, setConsented] = useState(false)
   const [unwell, setUnwell] = useState(false)
+  const [dimmed, setDimmed] = useState(false)
+  const [eyesClosedOn, setEyesClosedOn] = useState(true)
   const [soundOn, setSoundOn] = useState(true)
 
   const [label, setLabel] = useState('')
@@ -110,6 +113,27 @@ export default function YogaPractice() {
     clearTimers()
     stopSound()
   }, [])
+
+  // 화면이 잠기면 iOS는 Web Audio를 죽인다. 눈감기 모드의 전제.
+  useWakeLock(running)
+
+  // 30초 뒤 어두워지고, 탭하면 3초간 돌아온다.
+  // 펄스 호흡(카팔라바티·바스트리카)은 라운드·횟수를 봐야 하므로 제외한다.
+  useEffect(() => {
+    if (!running || !eyesClosedOn || t?.timer?.mode === 'pulsed') {
+      setDimmed(false)
+      return
+    }
+    const timer = setTimeout(() => setDimmed(true), 30000)
+    return () => clearTimeout(timer)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [running, eyesClosedOn])
+
+  const peek = () => {
+    if (!dimmed) return
+    setDimmed(false)
+    setTimeout(() => setDimmed(true), 3000)
+  }
 
   if (!t) {
     return (
@@ -388,6 +412,27 @@ export default function YogaPractice() {
                   </button>
                 </div>
 
+                {mode !== 'pulsed' && (
+                  <>
+                    <div className="setting-row" style={{ marginTop: '1rem', justifyContent: 'center' }}>
+                      <button
+                        className={`sound-toggle ${eyesClosedOn ? '' : 'is-off'}`}
+                        onClick={() => setEyesClosedOn((v) => !v)}
+                      >
+                        {eyesClosedOn ? '😌 눈감기 모드 켜짐' : '👀 화면 계속 보기'}
+                      </button>
+                    </div>
+                    {eyesClosedOn && (
+                      <p className="faint" style={{ fontSize: '0.82rem', marginTop: '0.5rem', lineHeight: 1.7 }}>
+                        30초 뒤 화면이 어두워집니다. 소리만 따라가세요 — 누르면 잠시 보입니다.
+                        {!wakeLockSupported() && (
+                          <><br />이 기기는 화면 켜둠을 지원하지 않아요. 자동 잠금이 켜져 있으면 소리가 멈출 수 있습니다.</>
+                        )}
+                      </p>
+                    )}
+                  </>
+                )}
+
                 <div className="breathe-controls" style={{ marginTop: '1.2rem' }}>
                   <button className="btn btn--primary" onClick={start}>호흡 시작하기</button>
                 </div>
@@ -395,7 +440,10 @@ export default function YogaPractice() {
             )}
           </div>
         ) : (
-          <div className="yoga-practice__stage">
+          <div
+            className={`yoga-practice__stage ${dimmed ? 'is-dimmed' : ''}`}
+            onClick={peek}
+          >
             {nostril && nostril !== 'both' && (
               <div className="nostril-guide">
                 {nostril === 'left' ? '왼쪽 콧구멍으로' : '오른쪽 콧구멍으로'}

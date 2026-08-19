@@ -185,3 +185,21 @@
   .tempo-btn { padding: 0.35rem 0.6rem; font-size: 0.78rem; }
   .tempo-now { min-width: 4.6rem; font-size: 0.8rem; }
 }
+
+/* ---------- 눈감기 모드 ---------- */
+/*
+  명상은 눈을 감고 하는 건데 화면을 보라고 요구하는 건 모순이다.
+  30초 뒤 화면을 거의 지우고 소리에 맡긴다. 완전히 0으로 두지 않는 이유는
+  사용자가 "앱이 죽었나" 하고 불안해지지 않게 하기 위해서다.
+*/
+.breathe-stage {
+  transition: opacity 2.5s var(--ease);
+  cursor: default;
+}
+.breathe-stage.is-dimmed {
+  opacity: 0.07;
+  cursor: pointer;
+}
+@media (prefers-reduced-motion: reduce) {
+  .breathe-stage { transition: opacity 0.4s linear; }
+}

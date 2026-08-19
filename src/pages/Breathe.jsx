@@ -2,7 +2,9 @@ import { useState, useEffect, useRef } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { getStage } from '../data/stages'
 import { usePremium } from '../context/PremiumContext'
-import { playBowl, getAudioContext, INHALE_FREQ, EXHALE_FREQ } from '../lib/bowl'
+import { getAudioContext, INHALE_FREQ, EXHALE_FREQ } from '../lib/bowl'
+import { playBreathTone } from '../lib/breathTone'
+import { useWakeLock, wakeLockSupported } from '../lib/useWakeLock'
 import { createAmbient } from '../lib/ambient'
 import { speak, stopNarration, primeNarration, PHASE_WORDS } from '../lib/narration'
 import './Breathe.css'
@@ -73,6 +75,10 @@ export default function Breathe() {
   const [ambientKind, setAmbientKind] = useState(null) // 현재 재생 중인 배경음 종류
   const [narrationOn, setNarrationOn] = useState(true) // 나레이션(inhale/exhale/hold)
   const [preparing, setPreparing] = useState(false) // 시작 직후 잠깐의 준비 시간
+  // 눈감기 모드 — 시작 30초 뒤 화면을 어둡게 해 소리에 맡긴다.
+  // 명상은 눈을 감고 하는 건데 화면을 보라고 요구하는 모순을 푼다.
+  const [dimmed, setDimmed] = useState(false)
+  const [eyesClosedOn, setEyesClosedOn] = useState(true)
 
   const tickRef = useRef(null)
   const bowlRef = useRef(null) // 현재 울리는 싱잉볼 핸들
@@ -84,6 +90,9 @@ export default function Breathe() {
   ambientOnRef.current = ambientOn
   const narrationOnRef = useRef(narrationOn)
   narrationOnRef.current = narrationOn
+
+  // 화면이 잠기면 iOS는 Web Audio를 죽인다. 눈감기 모드와 한 세트다.
+  useWakeLock(running)
 
   // 배경음 시작 (파도/모닥불 랜덤)
   const startAmbient = () => {
@@ -140,11 +149,17 @@ export default function Breathe() {
 
     // 싱잉볼 소리 (켜져 있을 때만) — 멈춤(1,3)은 무음
     if (!soundOnRef.current) return
-    if (idx === 0) {
-      bowlRef.current = playBowl(INHALE_FREQ, durSec, 0.5) // 들숨: 높은 울림
-    } else if (idx === 2) {
-      bowlRef.current = playBowl(EXHALE_FREQ, durSec, 0.5) // 날숨: 낮은 울림
-    }
+    // 타격음 한 번이 아니라 페이즈 전 구간을 채우는 연속음.
+    // 눈을 감고도 "지금 어디쯤인지"를 소리만으로 알 수 있어야 한다.
+    const action = idx === 0 ? 'inhale' : idx === 2 ? 'exhale' : 'hold'
+    const freq = action === 'exhale' ? EXHALE_FREQ : INHALE_FREQ
+    bowlRef.current = playBreathTone({
+      action,
+      durSec,
+      baseFreq: freq,
+      volume: action === 'hold' ? 0.16 : 0.34,
+      voice: 'bowl',
+    })
   }
 
   const spawnRipple = (color) => {
@@ -190,6 +205,22 @@ export default function Breathe() {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [running])
+
+  // 30초 뒤 화면을 어둡게. 탭하면 3초간 돌아온다.
+  useEffect(() => {
+    if (!running || !eyesClosedOn) {
+      setDimmed(false)
+      return
+    }
+    const t = setTimeout(() => setDimmed(true), 30000)
+    return () => clearTimeout(t)
+  }, [running, eyesClosedOn])
+
+  const peek = () => {
+    if (!dimmed) return
+    setDimmed(false)
+    setTimeout(() => setDimmed(true), 3000)
+  }
 
   // 목표 시간 도달 시 자동 종료
   useEffect(() => {
@@ -348,13 +379,34 @@ export default function Breathe() {
               </p>
             )}
 
-            <div className="breathe-controls">
+            {/* 눈감기 모드 — 명상의 본래 자세로 돌려보내는 장치 */}
+            <div className="setting-row" style={{ marginTop: '1.2rem', justifyContent: 'center' }}>
+              <button
+                className={`sound-toggle ${eyesClosedOn ? '' : 'is-off'}`}
+                onClick={() => setEyesClosedOn((v) => !v)}
+              >
+                {eyesClosedOn ? '😌 눈감기 모드 켜짐' : '👀 화면 계속 보기'}
+              </button>
+            </div>
+            {eyesClosedOn && (
+              <p className="faint text-center" style={{ fontSize: '0.82rem', marginTop: '0.5rem', lineHeight: 1.7 }}>
+                30초 뒤 화면이 어두워집니다. 소리만 따라가세요 — 화면을 누르면 잠시 보입니다.
+                {!wakeLockSupported() && (
+                  <><br />이 기기는 화면 켜둠을 지원하지 않아요. 자동 잠금이 켜져 있으면 소리가 멈출 수 있습니다.</>
+                )}
+              </p>
+            )}
+
+            <div className="breathe-controls" style={{ marginTop: '1.2rem' }}>
               <button className="btn btn--primary" onClick={start}>호흡 시작하기</button>
             </div>
           </>
         ) : (
           <>
-            <div className="breathe-stage">
+            <div
+              className={`breathe-stage ${dimmed ? 'is-dimmed' : ''}`}
+              onClick={peek}
+            >
               <div className="orb-holder">
                 {/* 물결 파동 — 동그라미 정중앙에서 여러 겹으로 퍼짐 */}
                 <div className="ripple-set">

@@ -8,6 +8,7 @@
 // ============================================================
 
 import { getAudioContext } from './bowl'
+import { createBreathPanner } from './breathTone'
 
 // 따뜻한 배음(옥타브 위주) — 부드러운 패드
 const PARTIALS = [
@@ -28,7 +29,10 @@ export function playYogaBreath(action, durSec, volume = 0.32) {
 
   const now = ac.currentTime
   const master = ac.createGain()
-  master.connect(ac.destination)
+  // 들숨엔 소리가 다가오고 날숨엔 멀어진다 (HRTF). 음색은 그대로 두고 공간만 더한다.
+  const panner = createBreathPanner(ac, action, durSec)
+  if (panner) master.connect(panner).connect(ac.destination)
+  else master.connect(ac.destination)
 
   const lp = ac.createBiquadFilter()
   lp.type = 'lowpass'

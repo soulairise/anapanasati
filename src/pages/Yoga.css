@@ -304,3 +304,16 @@
   color: var(--clay-deep);
   background: var(--bg-soft);
 }
+
+/* 눈감기 모드 — 소리에 맡기고 화면을 지운다.
+   펄스 호흡(카팔라바티·바스트리카)은 라운드·횟수를 봐야 해서 제외한다. */
+.yoga-practice__stage {
+  transition: opacity 2.5s var(--ease);
+}
+.yoga-practice__stage.is-dimmed {
+  opacity: 0.07;
+  cursor: pointer;
+}
+@media (prefers-reduced-motion: reduce) {
+  .yoga-practice__stage { transition: opacity 0.4s linear; }
+}
