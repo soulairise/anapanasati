@@ -30,8 +30,14 @@ const LINES = {
 }
 
 // 무료 티어에서 쓸 수 있는 기본 음성. 한국어는 multilingual 모델이 필요하다.
-const VOICE_ID = process.env.ELEVEN_VOICE_ID || 'pFZP5JQG7iQjIQuC4Bku' // Lily
+//
+// ⚠️ 한국어가 공식 검증된 음성(Bin·Hyuk)은 라이브러리 음성이라 무료 티어에서
+//    API 호출이 막힌다(paid_plan_required). 기본 제공 음성 중에서 골라야 한다.
+const VOICE_ID = process.env.ELEVEN_VOICE_ID || 'nPczCjzI2devNBz1zQrb' // Brian — 깊고 편안한 남성
 const MODEL = 'eleven_multilingual_v2'
+
+// 기본 속도는 명상 안내로는 너무 빠르다. 0.7이 API 하한(약 1.43배 느림)이다.
+const SPEED = Number(process.env.ELEVEN_SPEED || 0.7)
 
 async function loadKey() {
   if (process.env.ELEVENLABS_API_KEY) return process.env.ELEVENLABS_API_KEY.trim()
@@ -46,7 +52,13 @@ async function main() {
   const key = await loadKey()
   await mkdir(OUT_DIR, { recursive: true })
 
-  for (const [name, text] of Object.entries(LINES)) {
+  // 모델이 가끔 긴 침묵을 덧붙인다(같은 문장이 1.5초로도, 3.4초로도 나온다).
+  // 멈춤 구간은 2초짜리도 있어서 그런 파일이 들어가면 다음 안내와 겹친다.
+  // mp3 128kbps ≈ 16KB/초이므로 크기로 걸러 다시 뽑는다.
+  const MAX_KB = 34 // ≈ 2.1초
+  const ATTEMPTS = 4
+
+  const synth = async (text) => {
     const res = await fetch(
       `https://api.elevenlabs.io/v1/text-to-speech/${VOICE_ID}?output_format=mp3_44100_128`,
       {
@@ -56,20 +68,37 @@ async function main() {
           text,
           model_id: MODEL,
           // 명상 안내는 흔들림 없이 낮고 느린 편이 낫다.
-          voice_settings: { stability: 0.75, similarity_boost: 0.7, style: 0.0, use_speaker_boost: true },
+          voice_settings: {
+            stability: 0.8,
+            similarity_boost: 0.7,
+            style: 0.0,
+            use_speaker_boost: true,
+            speed: SPEED,
+          },
         }),
       },
     )
 
     if (!res.ok) {
       const body = await res.text()
-      throw new Error(`${name} 생성 실패 (HTTP ${res.status}): ${body.slice(0, 300)}`)
+      throw new Error(`생성 실패 (HTTP ${res.status}): ${body.slice(0, 300)}`)
     }
 
     const buf = Buffer.from(await res.arrayBuffer())
+    return buf
+  }
+
+  for (const [name, text] of Object.entries(LINES)) {
+    let best = null
+    for (let i = 1; i <= ATTEMPTS; i++) {
+      const buf = await synth(text)
+      if (!best || buf.length < best.length) best = buf
+      if (buf.length / 1024 <= MAX_KB) break
+      console.log(`  … ${name} ${(buf.length / 1024).toFixed(1)}KB — 너무 김, 재시도 ${i}/${ATTEMPTS}`)
+    }
     const out = join(OUT_DIR, `${name}.mp3`)
-    await writeFile(out, buf)
-    console.log(`✔ ${name}.mp3  "${text}"  ${(buf.length / 1024).toFixed(1)} KB`)
+    await writeFile(out, best)
+    console.log(`✔ ${name}.mp3  "${text}"  ${(best.length / 1024).toFixed(1)} KB`)
   }
 
   console.log('\n완료. src/lib/narration.js가 ko-*.mp3를 사용합니다.')
