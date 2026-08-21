@@ -10,12 +10,13 @@
 //
 // 비용을 아끼려고 주 1회로 막는다. 매번 부르면 돈도 새고 글도 흔해진다.
 //
-// 필요한 시크릿: ANTHROPIC_API_KEY
+// 필요한 시크릿: GEMINI_API_KEY (기본) 또는 ANTHROPIC_API_KEY
+//   AI_PROVIDER 로 갈아끼운다 — provider.ts 참고
 // 배포: supabase functions deploy coach
 // ============================================================
 
 import { createClient } from 'jsr:@supabase/supabase-js@2'
-import Anthropic from 'npm:@anthropic-ai/sdk@0.71.0'
+import { resolveProvider, generate, ProviderError } from './provider.ts'
 
 const cors = {
   'Access-Control-Allow-Origin': '*',
@@ -23,7 +24,6 @@ const cors = {
   'Access-Control-Allow-Methods': 'POST, OPTIONS',
 }
 
-const MODEL = 'claude-opus-5'
 const COOLDOWN_DAYS = 7
 const LOOKBACK_DAYS = 56 // 8주 — 추세가 보이기 시작하는 최소 길이
 const MIN_SESSIONS = 3 // 이보다 적으면 할 말이 없다
@@ -147,8 +147,8 @@ Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: cors })
 
   try {
-    const key = Deno.env.get('ANTHROPIC_API_KEY')
-    if (!key) {
+    const cfg = resolveProvider()
+    if (!cfg) {
       return json({ error: true, message: '코칭이 아직 준비되지 않았습니다.' }, 503)
     }
 
@@ -220,25 +220,7 @@ Deno.serve(async (req) => {
     }
 
     // 5) 편지를 쓴다
-    const anthropic = new Anthropic({ apiKey: key })
-    const response = await anthropic.messages.create({
-      model: MODEL,
-      max_tokens: 1000,
-      system: SYSTEM,
-      output_config: { effort: 'low' },
-      messages: [{ role: 'user', content: summarize(rows as Row[]) }],
-    })
-
-    if (response.stop_reason === 'refusal') {
-      return json({ error: true, message: '이번에는 편지를 쓰지 못했습니다. 다음에 다시 시도해 주세요.' }, 502)
-    }
-
-    const text = response.content
-      .filter((b) => b.type === 'text')
-      .map((b) => (b as { text: string }).text)
-      .join('\n')
-      .trim()
-
+    const { text, model } = await generate(cfg, SYSTEM, summarize(rows as Row[]))
     if (!text) return json({ error: true, message: '편지가 비어 있습니다.' }, 502)
 
     const { data: saved } = await admin
@@ -246,7 +228,7 @@ Deno.serve(async (req) => {
       .insert({
         user_id: user.id,
         text,
-        model: MODEL,
+        model,
         period_from: from,
         period_to: new Date().toISOString(),
         session_n: rows.length,
@@ -262,12 +244,13 @@ Deno.serve(async (req) => {
       next_in_days: COOLDOWN_DAYS,
     })
   } catch (e) {
-    if (e instanceof Anthropic.RateLimitError) {
-      return json({ error: true, message: '지금 요청이 몰려 있습니다. 잠시 뒤 다시 시도해 주세요.' }, 429)
+    if (e instanceof ProviderError) {
+      // 원문은 서버 로그에만 남긴다. 사용자에게 제공자 오류를 그대로 보이면
+      // 키 정보나 내부 구조가 새어나갈 수 있다.
+      console.error('[coach] provider error:', e.message)
+      return json({ error: true, message: e.userMessage }, e.status)
     }
-    if (e instanceof Anthropic.AuthenticationError) {
-      return json({ error: true, message: '코칭 설정에 문제가 있습니다. 관리자에게 알려 주세요.' }, 500)
-    }
-    return json({ error: true, message: String(e) }, 500)
+    console.error('[coach] unexpected:', e)
+    return json({ error: true, message: '문제가 생겼습니다. 잠시 뒤 다시 시도해 주세요.' }, 500)
   }
 })
