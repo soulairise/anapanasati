@@ -33,11 +33,15 @@ printf '\n\n'
 
 [ -n "${GEMINI_KEY}" ] || fail "키가 비어 있습니다."
 
-# 구글 API 키는 AIza 로 시작한다. 다른 서비스 키를 잘못 붙여넣는 실수를 막는다.
+# 구글 AI Studio 키는 두 형식이 있다. 둘 다 받아들인다.
+#   AIza…  예전 형식
+#   AQ.A…  현재 발급되는 형식 (실제로 이 형식으로 받아 확인함)
+# 다른 서비스 키를 잘못 붙여넣는 실수만 막는다.
 case "${GEMINI_KEY}" in
-  AIza*) ;;
-  sk-ant-*) fail "이건 Anthropic 키입니다. Google AI Studio 키(AIza…)가 필요합니다." ;;
-  *) say "  ⚠️  보통 Gemini 키는 AIza 로 시작합니다. 그대로 진행합니다." ;;
+  AIza*|AQ.*) ;;
+  sk-ant-*) fail "이건 Anthropic 키입니다. Google AI Studio 키가 필요합니다." ;;
+  sk-*) fail "이건 OpenAI 계열 키로 보입니다. Google AI Studio 키가 필요합니다." ;;
+  *) say "  ⚠️  Gemini 키는 보통 AIza 나 AQ. 로 시작합니다. 그대로 진행합니다." ;;
 esac
 
 # ── 2. Supabase 로그인 ────────────────────────────────────
