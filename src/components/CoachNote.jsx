@@ -19,6 +19,26 @@ const fmt = (iso) => {
   return `${d.getFullYear()}년 ${d.getMonth() + 1}월 ${d.getDate()}일`
 }
 
+// 편지를 읽기 좋은 덩어리로 나눈다.
+//
+// 줄바꿈이 있으면 그대로 쓰고, 없으면 문장 단위로 나눈다.
+// 모델에게 줄을 나눠 쓰라고 일러 뒀지만 늘 지키지는 않고, 이미 저장된
+// 편지에는 줄바꿈이 없다. 화면 쪽에서 한 번 더 받아 준다.
+//
+// 정규식에 lookbehind 를 쓰지 않는다 — 구형 사파리에서 문법 오류로 죽는다.
+// 문장부호까지 포함해 통째로 집는 방식이 호환성이 넓다.
+const toParagraphs = (text = '') => {
+  const byLine = text
+    .split('\n')
+    .map((s) => s.trim())
+    .filter(Boolean)
+  if (byLine.length > 1) return byLine
+
+  const sentences = text.match(/[^.!?]+[.!?]*/g) || []
+  const out = sentences.map((s) => s.trim()).filter(Boolean)
+  return out.length ? out : [text]
+}
+
 export default function CoachNote({ isPremium, sessionCount }) {
   const navigate = useNavigate()
   const [note, setNote] = useState(null)
@@ -90,7 +110,7 @@ export default function CoachNote({ isPremium, sessionCount }) {
         <>
           <p className="coach__date">{fmt(note.created_at)}</p>
           <div className="coach__body">
-            {note.text.split('\n').filter(Boolean).map((p, i) => (
+            {toParagraphs(note.text).map((p, i) => (
               <p key={i}>{p}</p>
             ))}
           </div>

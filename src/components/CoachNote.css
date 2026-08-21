@@ -44,8 +44,10 @@
   font-size: 1.02rem;
   line-height: 2;
 }
+/* 문장마다 한 덩어리로 떨어뜨린다. 붙여 놓으면 벽처럼 보여 읽히지 않는다.
+   편지는 정보가 아니라 말이므로, 숨 쉴 자리가 있어야 한다. */
 .coach__body p {
-  margin: 0 0 0.7rem;
+  margin: 0 0 0.95rem;
 }
 .coach__body p:last-child {
   margin-bottom: 0;
