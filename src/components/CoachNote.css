@@ -1,0 +1,66 @@
+.coach {
+  margin-top: 1rem;
+  padding: 1.25rem;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: var(--bg-soft);
+}
+.coach--locked {
+  cursor: pointer;
+  text-align: center;
+  background: transparent;
+}
+.coach__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+}
+.coach__title {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 600;
+}
+.coach__next {
+  font-size: 0.82rem;
+  color: var(--ink-faint);
+}
+.coach__date {
+  margin: 0.35rem 0 0;
+  font-size: 0.82rem;
+  color: var(--ink-faint);
+}
+.coach__lead {
+  margin: 0.6rem 0 1rem;
+  font-size: 0.95rem;
+  line-height: 1.75;
+  color: var(--ink-soft);
+}
+/* 편지처럼 읽히도록 본문은 명조로 */
+.coach__body {
+  margin: 0.9rem 0 1.1rem;
+  font-family: var(--font-serif);
+  font-size: 1.02rem;
+  line-height: 2;
+}
+.coach__body p {
+  margin: 0 0 0.7rem;
+}
+.coach__body p:last-child {
+  margin-bottom: 0;
+}
+.coach__error {
+  margin: 0.75rem 0 0;
+  font-size: 0.9rem;
+  line-height: 1.6;
+  color: #b4544a;
+}
+.coach__privacy {
+  margin: 1rem 0 0;
+  padding-top: 0.85rem;
+  border-top: 1px solid var(--line);
+  font-size: 0.82rem;
+  line-height: 1.7;
+  color: var(--ink-faint);
+}

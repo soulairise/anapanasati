@@ -6,6 +6,7 @@ import { sessionsApi, computeStats } from '../lib/store'
 import { describeSession } from '../lib/tracks'
 import JournalTrend from '../components/JournalTrend'
 import JournalInsight from '../components/JournalInsight'
+import CoachNote from '../components/CoachNote'
 import { formatDuration, formatDate } from '../lib/format'
 
 export default function Journal() {
@@ -68,6 +69,9 @@ export default function Journal() {
         {!loading && sessions.length > 0 && (
           <JournalInsight sessions={sessions} isPremium={isPremium} />
         )}
+
+        {/* 수행 코칭 — 프리미엄. 수치만 보고 쓴다(소감 글은 보내지 않는다). */}
+        {!loading && <CoachNote isPremium={isPremium} sessionCount={sessions.length} />}
 
         {loading ? (
           <p className="muted text-center">불러오는 중…</p>
