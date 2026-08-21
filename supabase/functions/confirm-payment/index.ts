@@ -12,12 +12,7 @@
 // ============================================================
 
 import { createClient } from 'jsr:@supabase/supabase-js@2'
-
-const cors = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-  'Access-Control-Allow-Methods': 'POST, OPTIONS',
-}
+import { preflight, jsonWith } from './cors.ts'
 
 // 플랜별 정가(원) — 결제 금액 위변조 방지용 서버 검증
 // ⚠️ Premium.jsx의 PLANS와 반드시 같은 값을 유지할 것. 어긋나면 결제가 거부된다.
@@ -26,15 +21,10 @@ const PRICE: Record<string, number> = { yearly: 39000, quarterly: 12900, monthly
 // 플랜별 이용 기간(개월)
 const MONTHS: Record<string, number> = { yearly: 12, quarterly: 3, monthly: 1 }
 
-function json(body: unknown, status = 200) {
-  return new Response(JSON.stringify(body), {
-    status,
-    headers: { ...cors, 'Content-Type': 'application/json' },
-  })
-}
-
 Deno.serve(async (req) => {
-  if (req.method === 'OPTIONS') return new Response('ok', { headers: cors })
+  const pre = preflight(req)
+  if (pre) return pre
+  const json = jsonWith(req)
 
   try {
     const { paymentKey, orderId, amount, plan } = await req.json()

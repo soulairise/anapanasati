@@ -17,22 +17,11 @@
 
 import { createClient } from 'jsr:@supabase/supabase-js@2'
 import { resolveProvider, generate, ProviderError } from './provider.ts'
-
-const cors = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-  'Access-Control-Allow-Methods': 'POST, OPTIONS',
-}
+import { preflight, jsonWith } from './cors.ts'
 
 const COOLDOWN_DAYS = 7
 const LOOKBACK_DAYS = 56 // 8주 — 추세가 보이기 시작하는 최소 길이
 const MIN_SESSIONS = 3 // 이보다 적으면 할 말이 없다
-
-const json = (body: unknown, status = 200) =>
-  new Response(JSON.stringify(body), {
-    status,
-    headers: { ...cors, 'Content-Type': 'application/json' },
-  })
 
 const TRACK_KO: Record<string, string> = {
   anapanasati: '호흡하기',
@@ -144,7 +133,9 @@ const SYSTEM = `당신은 호흡·명상 수행을 오래 해 온 안내자입�
 당신은 소감 글을 보지 못합니다. 사용자가 무엇을 느꼈는지 아는 척하지 마십시오.`
 
 Deno.serve(async (req) => {
-  if (req.method === 'OPTIONS') return new Response('ok', { headers: cors })
+  const pre = preflight(req)
+  if (pre) return pre
+  const json = jsonWith(req)
 
   try {
     const cfg = resolveProvider()

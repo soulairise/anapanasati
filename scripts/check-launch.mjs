@@ -131,6 +131,39 @@ results.push(
     : warn('TRIAL_DAYS 선언 없음'),
 )
 
+// 5-b) Edge Function 의 CORS 사본이 어긋나지 않았는지
+//     배포 도구가 상위 폴더 참조를 못 해서 함수마다 같은 파일을 복사해 뒀다.
+//     한쪽만 고치면 그 함수만 조용히 CORS 로 막힌다 — 로그에도 안 남는다.
+results.push('\n[5-b] Edge Function CORS 사본 일치')
+const corsPaths = [
+  'supabase/functions/coach/cors.ts',
+  'supabase/functions/confirm-payment/cors.ts',
+]
+const corsBodies = []
+for (const rel of corsPaths) {
+  try {
+    corsBodies.push(await readFile(join(ROOT, rel), 'utf8'))
+  } catch {
+    results.push(no(`${rel} 없음`))
+    blocking++
+  }
+}
+if (corsBodies.length === corsPaths.length) {
+  if (corsBodies.every((b) => b === corsBodies[0])) {
+    results.push(ok(`사본 ${corsPaths.length}개가 동일`))
+    // supabase-js 가 보내는 헤더가 허용되는지
+    if (corsBodies[0].includes('x-supabase-api-version')) {
+      results.push(ok('x-supabase-api-version 허용됨'))
+    } else {
+      results.push(no('x-supabase-api-version 이 허용 목록에 없음 — 브라우저가 요청을 막는다'))
+      blocking++
+    }
+  } else {
+    results.push(no('사본이 서로 다르다 — 한쪽 함수만 CORS 로 막힌다'))
+    blocking++
+  }
+}
+
 // 6) 사람이 직접 봐야 하는 것
 results.push('\n[6] 기계가 못 보는 것 — 직접 확인')
 for (const s of [
