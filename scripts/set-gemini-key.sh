@@ -53,10 +53,13 @@ say ""
 
 # ── 3. 등록 ───────────────────────────────────────────────
 say "  3. 시크릿을 등록합니다…"
-npx --yes supabase secrets set \
+# 출력을 가리지 않는다. 처음에 >/dev/null 로 묻어 뒀더니 실패가 조용히
+# 넘어가서 "등록했다"고 믿은 채 다음 단계로 갔다. 오류는 보여야 한다.
+if ! npx --yes supabase secrets set \
   "GEMINI_API_KEY=${GEMINI_KEY}" \
-  --project-ref "${PROJECT_REF}" >/dev/null 2>&1 \
-  || fail "등록에 실패했습니다. 로그인 계정이 이 프로젝트에 접근 권한이 있는지 확인해 주세요."
+  --project-ref "${PROJECT_REF}"; then
+  fail "등록에 실패했습니다. 위 오류 메시지를 확인해 주세요."
+fi
 
 unset GEMINI_KEY   # 메모리에서도 지운다
 
@@ -64,7 +67,7 @@ unset GEMINI_KEY   # 메모리에서도 지운다
 say ""
 say "  4. 확인합니다…"
 say ""
-if npx --yes supabase secrets list --project-ref "${PROJECT_REF}" 2>/dev/null | grep -q "GEMINI_API_KEY"; then
+if npx --yes supabase secrets list --project-ref "${PROJECT_REF}" | grep -q "GEMINI_API_KEY"; then
   say "  ✅ GEMINI_API_KEY 등록 완료"
   say ""
   say "  이제 수행일지에서 편지를 받으실 수 있습니다."
