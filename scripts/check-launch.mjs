@@ -169,8 +169,8 @@ results.push('\n[6] 기계가 못 보는 것 — 직접 확인')
 for (const s of [
   'Edge Function을 배포했는가 (supabase functions deploy confirm-payment)',
   'Supabase에 TOSS_SECRET_KEY 시크릿이 라이브 키로 들어갔는가',
-  '강서구청에 통신판매업 소재지 변경신고를 했는가 (공항대로 325 → 양천로 564)',
-  '같은 변경신고에서 인터넷 도메인에 이 사이트를 넣었는가',
+  '통신판매업 변경신고 반영 확인 (공정위 조회: ftc.go.kr → 통신판매사업자조회)',
+  '  ㄴ 소재지가 양천로 564 로 나오는가 / 도메인에 이 사이트가 있는가',
   '테스트 카드로 결제 → 기간이 이어붙는지 한 번 돌려봤는가',
   'TRIAL_DAYS 와 DB 트리거(handle_new_user)의 체험 일수가 같은가',
 ]) results.push(warn(s))
