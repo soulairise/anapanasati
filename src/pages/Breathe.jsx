@@ -85,6 +85,10 @@ export default function Breathe() {
   })
   const [minutes, setMinutes] = useState(3)
   const [running, setRunning] = useState(false)
+  // ⚠️ 일시정지가 stop() 을 불러 running 을 꺼 버렸다. 그러면 설정 화면으로
+  //    되돌아가 버려서 "일시정지"가 아니라 "처음부터 다시"가 됐다.
+  //    running 은 그대로 두고 시계만 멈춘다.
+  const [paused, setPaused] = useState(false)
   const [phaseIdx, setPhaseIdx] = useState(0)
   const [phaseRemain, setPhaseRemain] = useState(0)
   const [elapsed, setElapsed] = useState(0) // 초
@@ -269,7 +273,7 @@ export default function Breathe() {
   }
 
   useEffect(() => {
-    if (!running) return
+    if (!running || paused) return
 
     let cancelled = false
     let curr = 0
@@ -303,17 +307,17 @@ export default function Breathe() {
       clearInterval(tickRef.current)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [running])
+  }, [running, paused])
 
   // 30초 뒤 화면을 어둡게. 탭하면 3초간 돌아온다.
   useEffect(() => {
-    if (!running || !eyesClosedOn) {
+    if (!running || paused || !eyesClosedOn) {
       setDimmed(false)
       return
     }
     const t = setTimeout(() => setDimmed(true), 30000)
     return () => clearTimeout(t)
-  }, [running, eyesClosedOn])
+  }, [running, paused, eyesClosedOn])
 
   const peek = () => {
     if (!dimmed) return
@@ -323,7 +327,7 @@ export default function Breathe() {
 
   // 목표 시간 도달 시 자동 종료
   useEffect(() => {
-    if (running && elapsed >= minutes * 60) finish()
+    if (running && !paused && elapsed >= minutes * 60) finish()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [elapsed, running])
 
@@ -343,6 +347,7 @@ export default function Breathe() {
     setPhaseIdx(0)
     setPhaseRemain(0)
     setOrbScale(0.6) // 작은 원에서 시작 → 첫 들숨에 커짐
+    setPaused(false)
     setPreparing(true) // 잠깐의 준비 시간
     setRunning(true)
     if (ambientOnRef.current) startAmbient() // 배경음(파도) 재생
@@ -357,11 +362,36 @@ export default function Breathe() {
 
   const stop = () => {
     setRunning(false)
+    setPaused(false)
     setPreparing(false)
     clearInterval(tickRef.current)
     stopSound()
     stopAmbient()
     stopNarration()
+  }
+
+  // 일시정지 / 이어서 하기
+  //
+  // 멈추는 동안 소리는 모두 끈다. 시계가 멈췄는데 파도만 계속 치면
+  // 수행이 이어지는 줄 알고 앉아 있게 된다.
+  // 경과 시간과 화면은 그대로 둔다 — 다시 누르면 그 자리에서 이어진다.
+  const togglePause = () => {
+    setPaused((was) => {
+      const next = !was
+      if (next) {
+        clearInterval(tickRef.current)
+        stopSound()
+        stopAmbient()
+        stopNarration()
+      } else {
+        // 재개하면 준비 시간(2.5초)을 다시 거친다. 갑자기 들숨부터
+        // 시작하면 따라가지 못한다. 숨을 고를 틈을 준다.
+        setPreparing(true)
+        if (ambientOnRef.current) startAmbient()
+        if (narrationOnRef.current) primeNarration()
+      }
+      return next
+    })
   }
 
   // 음성 안내 켜기/끄기
@@ -670,11 +700,17 @@ export default function Breathe() {
                     transform: `scale(${orbScale})`,
                   }}
                 >
-                  <span>{preparing ? '' : phaseRemain}</span>
+                  <span>{preparing || paused ? '' : phaseRemain}</span>
                 </div>
               </div>
+              {/* 멈춘 동안 "들이쉬기"가 그대로 떠 있으면 따라 쉬게 된다.
+                  시계가 멈췄다는 걸 화면이 말해 줘야 한다. */}
               <div className="breath-phase-label">
-                {preparing ? '편안히 앉으셨다면, 곧 시작합니다' : PHASE_NAMES[phaseIdx]}
+                {paused
+                  ? '잠시 멈춤'
+                  : preparing
+                    ? '편안히 앉으셨다면, 곧 시작합니다'
+                    : PHASE_NAMES[phaseIdx]}
               </div>
               <div className="breath-timer">
                 {Math.floor(elapsed / 60)}분 {elapsed % 60}초 / {minutes}분
@@ -715,8 +751,15 @@ export default function Breathe() {
               >
                 🔔 싱잉볼
               </button>
-              <button className={`sound-toggle ${ambientOn ? '' : 'is-off'}`} title="파도 소리" onClick={toggleAmbient}>
-                🌊 파도
+              {/* ⚠️ 예전엔 여기 "🌊 파도"를 박아 뒀다. 배경음을 4종으로 늘릴 때
+                  설정 화면만 고치고 이 수행 중 화면을 빠뜨려서, 모닥불을 골라도
+                  파도라고 적혀 있었다. 고른 것을 그대로 보여준다. */}
+              <button
+                className={`sound-toggle ${ambientOn ? '' : 'is-off'}`}
+                title="배경음"
+                onClick={toggleAmbient}
+              >
+                {AMBIENT_KINDS.find((a) => a.key === allowedAmbient)?.label || '🌊 파도'}
               </button>
               <button className={`sound-toggle ${narrationOn ? '' : 'is-off'}`} title="나레이션" onClick={toggleNarration}>
                 🎙️ 나레이션
@@ -724,9 +767,16 @@ export default function Breathe() {
             </div>
             {/* 동작 버튼 */}
             <div className="breathe-controls">
-              <button className="btn btn--ghost" onClick={stop}>일시정지</button>
+              <button className="btn btn--ghost" onClick={togglePause}>
+                {paused ? '이어서 하기' : '일시정지'}
+              </button>
               <button className="btn btn--primary" onClick={finish}>마치고 기록하기</button>
             </div>
+            {paused && (
+              <p className="faint text-center" style={{ marginTop: '0.85rem', fontSize: '0.9rem' }}>
+                멈춰 있습니다. 준비되시면 이어서 하세요.
+              </p>
+            )}
           </>
         )}
       </div>
