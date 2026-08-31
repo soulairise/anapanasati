@@ -1,0 +1,218 @@
+/* ============================================================
+   홈 v2 — 토큰을 이 화면 안에만 둔다(.v2 스코프).
+   다른 20여 개 화면을 건드리지 않고 비교할 수 있어야 한다.
+
+   ⚠️ 크림(#f6f4ef)을 쓰지 않는다. frontend-design 스킬이 첫 번째로
+      금지한 조합이 "따뜻한 크림 + 대비 강한 명조 + 테라코타"다.
+      대신 차가운 회백으로 간다 — 새벽 공기의 색이고,
+      사람들이 실제로 이 앱을 여는 시간대와 맞는다.
+
+   ⚠️ 처음엔 "한지와 먹, 종이결 텍스처"를 떠올렸는데 걷어냈다.
+      "동양 명상 = 한지"는 어떤 한국 명상 앱에도 내놓을 답이라
+      크림 배경과 사실상 같은 자리다. (스킬의 2차 자기검토)
+   ============================================================ */
+.v2 {
+  --v2-paper: #eceef0; /* 차가운 회백 */
+  --v2-paper-2: #e3e6e9;
+  --v2-ink: #16181c; /* 먹 */
+  --v2-ink-2: #4d545c;
+  --v2-ink-3: #858d96;
+  --v2-rule: #cdd2d7;
+  --v2-accent: #2f4858; /* 새벽 하늘. 포인트는 이 하나뿐 */
+
+  background: var(--v2-paper);
+  color: var(--v2-ink);
+  min-height: 100vh;
+  /* 숫자가 흔들리지 않게 — 초·분·횟수가 이 앱의 실체다 */
+  font-variant-numeric: tabular-nums;
+}
+.v2__wrap {
+  max-width: 46rem;
+  margin: 0 auto;
+  padding: 0 1.5rem 5rem;
+}
+
+/* ── 첫인상 ─────────────────────────────────────────────── */
+.v2-hero {
+  padding: 4.5rem 0 0;
+}
+/* 원이 실제로 분당 6회로 숨을 쉰다. 들숨 4초 / 날숨 6초 */
+.v2-hero__breath {
+  height: 92px;
+  display: flex;
+  align-items: center;
+  margin-bottom: 2.75rem;
+}
+.v2-hero__orb {
+  display: block;
+  width: 92px;
+  height: 92px;
+  border-radius: 50%;
+  border: 1px solid var(--v2-rule);
+  background: radial-gradient(circle at 50% 45%, rgba(47, 72, 88, 0.1), transparent 70%);
+  transform-origin: left center;
+  animation: v2-breathe 10s ease-in-out infinite;
+}
+@keyframes v2-breathe {
+  0% { transform: scale(0.62); opacity: 0.55; }
+  40% { transform: scale(1); opacity: 1; }   /* 들숨 4초 */
+  100% { transform: scale(0.62); opacity: 0.55; } /* 날숨 6초 */
+}
+/* 움직임을 줄여 달라고 한 사람에겐 멈춘 원을 보여준다 */
+@media (prefers-reduced-motion: reduce) {
+  .v2-hero__orb { animation: none; transform: scale(0.85); }
+}
+
+.v2-eyebrow {
+  margin: 0 0 1.1rem;
+  font-size: 0.76rem;
+  letter-spacing: 0.14em;
+  color: var(--v2-ink-3);
+}
+.v2-hero__title {
+  margin: 0;
+  font-family: var(--font-serif);
+  /* 크기 대비를 극단으로 벌린다. 제목이 주인공이다 */
+  font-size: clamp(2.6rem, 7.5vw, 4.4rem);
+  font-weight: 400;
+  line-height: 1.28;
+  letter-spacing: -0.015em;
+  word-break: keep-all;
+}
+.v2-hero__sub {
+  margin: 1.6rem 0 0;
+  max-width: 30rem;
+  font-size: 1.02rem;
+  line-height: 1.95;
+  color: var(--v2-ink-2);
+  word-break: keep-all;
+}
+.v2-hero__cta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 1.4rem;
+  margin-top: 2.2rem;
+}
+/* 버튼만 둥글다. 나머지는 각지게 둔다 — 알약이 31곳이면 위계가 사라진다 */
+.v2-btn {
+  display: inline-flex;
+  align-items: center;
+  text-decoration: none;
+  font-size: 0.98rem;
+}
+.v2-btn--solid {
+  padding: 0.82rem 1.6rem;
+  border-radius: 2px;
+  background: var(--v2-ink);
+  color: var(--v2-paper);
+  transition: background 180ms ease;
+}
+.v2-btn--solid:hover { background: var(--v2-accent); }
+.v2-btn--plain {
+  color: var(--v2-ink-2);
+  border-bottom: 1px solid var(--v2-rule);
+  padding-bottom: 2px;
+  transition: color 180ms ease, border-color 180ms ease;
+}
+.v2-btn--plain:hover { color: var(--v2-ink); border-color: var(--v2-ink); }
+
+.v2-hero__rule { margin-top: 3.4rem; }
+
+/* ── 섹션 ───────────────────────────────────────────────── */
+.v2-sec { padding: 3.6rem 0 0; }
+.v2-sec__title {
+  margin: 0 0 1.6rem;
+  font-family: var(--font-serif);
+  font-size: 1.4rem;
+  font-weight: 400;
+  letter-spacing: -0.01em;
+}
+
+/* ── 목적 목록 — 카드가 아니라 행 ────────────────────────── */
+.v2-goals { list-style: none; margin: 0; padding: 0; }
+.v2-goals li + li { border-top: 1px solid var(--v2-rule); }
+.v2-goal {
+  display: grid;
+  grid-template-columns: 1fr auto 3.2rem 1.2rem;
+  align-items: baseline;
+  gap: 0.9rem;
+  width: 100%;
+  padding: 1.05rem 0;
+  background: none;
+  border: 0;
+  text-align: left;
+  cursor: pointer;
+  color: inherit;
+  font: inherit;
+}
+.v2-goal__label { font-size: 1.05rem; }
+.v2-goal__hint { font-size: 0.88rem; color: var(--v2-ink-3); }
+.v2-goal__min { font-size: 0.88rem; color: var(--v2-ink-3); text-align: right; }
+.v2-goal__arrow {
+  color: var(--v2-rule);
+  text-align: right;
+  transition: transform 180ms ease, color 180ms ease;
+}
+.v2-goal:hover .v2-goal__arrow { color: var(--v2-ink); transform: translateX(3px); }
+.v2-goal:hover .v2-goal__label { color: var(--v2-accent); }
+
+/* ── 세 갈래 — 태도를 앞에 낸다 ──────────────────────────── */
+.v2-paths { display: grid; gap: 1px; background: var(--v2-rule); }
+.v2-path {
+  display: grid;
+  grid-template-columns: 5.5rem 1fr auto;
+  align-items: baseline;
+  gap: 1rem;
+  padding: 1.35rem 0;
+  background: var(--v2-paper);
+  text-decoration: none;
+  color: inherit;
+}
+.v2-path__verb {
+  font-family: var(--font-serif);
+  font-size: 1.12rem;
+  color: var(--v2-accent);
+}
+.v2-path__name { font-size: 1rem; }
+.v2-path__detail {
+  grid-column: 2;
+  grid-row: 2;
+  font-size: 0.88rem;
+  line-height: 1.7;
+  color: var(--v2-ink-3);
+  word-break: keep-all;
+}
+.v2-path__count {
+  font-size: 0.82rem;
+  color: var(--v2-ink-3);
+  white-space: nowrap;
+}
+.v2-path:hover .v2-path__name { color: var(--v2-accent); }
+
+/* ── 꼬리말 ─────────────────────────────────────────────── */
+.v2-tail {
+  margin-top: 3.6rem;
+  padding-top: 1.8rem;
+  border-top: 1px solid var(--v2-rule);
+  font-size: 0.92rem;
+  line-height: 1.9;
+  color: var(--v2-ink-2);
+}
+.v2-tail a { color: var(--v2-ink); }
+.v2-tail__note {
+  margin-top: 0.9rem;
+  font-size: 0.84rem;
+  color: var(--v2-ink-3);
+  word-break: keep-all;
+}
+
+@media (max-width: 560px) {
+  .v2__wrap { padding: 0 1.15rem 4rem; }
+  .v2-hero { padding-top: 3rem; }
+  .v2-goal { grid-template-columns: 1fr 3rem 1rem; }
+  /* 좁은 화면에선 힌트를 아래로 내린다. 네 칸은 안 들어간다 */
+  .v2-goal__hint { grid-column: 1; grid-row: 2; }
+  .v2-path { grid-template-columns: 4.6rem 1fr; }
+  .v2-path__count { grid-column: 2; grid-row: 3; }
+}

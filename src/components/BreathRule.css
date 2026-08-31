@@ -1,0 +1,47 @@
+/* 호흡 눈금 — 폭이 초에 비례한다 */
+.brule {
+  width: 100%;
+}
+.brule__track {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  height: 10px;
+}
+.brule__seg {
+  height: 2px;
+  border-radius: 0; /* 알약을 쓰지 않는다. 눈금은 각져야 눈금이다 */
+}
+/* 들숨 — 채워진다 */
+.brule__seg--in {
+  background: var(--v2-ink);
+  height: 3px;
+}
+/* 날숨 — 비어 있다. 테두리만 남긴다 */
+.brule__seg--out {
+  background: transparent;
+  border-top: 1px solid var(--v2-rule);
+  border-bottom: 1px solid var(--v2-rule);
+  height: 5px;
+}
+/* 멈춤 — 아주 짧은 세로선 하나 */
+.brule__seg--hold {
+  background: var(--v2-rule);
+  height: 9px;
+  max-width: 1px;
+  flex-grow: 0 !important;
+  flex-basis: 1px;
+}
+.brule__labels {
+  display: flex;
+  gap: 6px;
+  margin-top: 0.55rem;
+  font-size: 0.78rem;
+  letter-spacing: 0.02em;
+  color: var(--v2-ink-3);
+  font-variant-numeric: tabular-nums;
+}
+.brule__total {
+  margin-left: auto;
+  white-space: nowrap;
+}
