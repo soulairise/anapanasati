@@ -31,7 +31,12 @@ export const TRIAL_REQUIRES_CARD = false
 export const TOSS_READY = Boolean(import.meta.env.VITE_TOSS_CLIENT_KEY)
 
 // 앱 복귀 URL (GitHub Pages base + HashRouter)
-const appBase = () => window.location.origin + window.location.pathname
+// 앱의 뿌리 주소. 끝에 슬래시를 보장한다 — 뒤에 경로를 붙이기 때문이다.
+// window.location.pathname 을 쓰면 지금 보고 있는 화면 경로가 섞인다.
+const appBase = () => {
+  const base = (import.meta.env.BASE_URL || '/').replace(/\/*$/, '/')
+  return window.location.origin + base
+}
 
 // 주문번호에 플랜을 심어 둔다.
 // 저장소가 비어 있어도(다른 탭으로 복귀, 시크릿 창 등) 여기서 되찾을 수 있다.
@@ -101,8 +106,9 @@ export async function requestSubscription({ planKey, orderName, amount, customer
   const orderId = makeOrderId(planKey)
   rememberPending({ planKey, orderId, amount })
 
-  const success = `${appBase()}#/pay/success`
-  const fail = `${appBase()}#/pay/fail`
+  // 해시가 없으므로 토스가 ?paymentKey=... 를 깔끔하게 붙인다
+  const success = `${appBase()}pay/success`
+  const fail = `${appBase()}pay/fail`
 
   await payment.requestPayment({
     method: 'CARD',

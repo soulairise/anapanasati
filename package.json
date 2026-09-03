@@ -6,7 +6,7 @@
   "description": "숨결의 길 — 아나빠나사띠 호흡명상 웹서비스",
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
+    "build": "vite build && node scripts/spa-fallback.mjs",
     "preview": "vite preview",
     "deploy": "gh-pages -d dist",
     "check:launch": "node scripts/check-launch.mjs",
