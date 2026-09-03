@@ -54,7 +54,7 @@
   transform: translateX(-50%);
   white-space: nowrap;
   background: var(--sage);
-  color: #fff;
+  color: #0b0e12;
   font-size: 0.72rem;
   font-weight: 500;
   padding: 0.2rem 0.7rem;
@@ -152,7 +152,7 @@
 
 /* ── 쿠폰 입력 ─────────────────────────────────────────── */
 .coupon {
-  border: 1px solid var(--line, rgba(0, 0, 0, 0.1));
+  border: 1px solid var(--line, rgba(210, 224, 238, 0.12));
   border-radius: 14px;
   padding: 1.1rem;
 }
@@ -173,7 +173,7 @@
   font-size: 1rem; /* 16px 미만이면 iOS가 화면을 확대한다 */
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  border: 1px solid var(--line, rgba(0, 0, 0, 0.15));
+  border: 1px solid var(--line, rgba(210, 224, 238, 0.12));
   border-radius: 10px;
   background: transparent;
   color: inherit;
@@ -195,7 +195,7 @@
   margin-top: 1.5rem;
   padding: 1.1rem;
   border-radius: 14px;
-  background: var(--surface-2, rgba(0, 0, 0, 0.035));
+  background: var(--surface-2, rgba(210, 224, 238, 0.12));
   text-align: left;
 }
 .trial-note p {

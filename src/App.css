@@ -187,9 +187,11 @@
 .breath-orb {
   width: 200px; height: 200px;
   border-radius: 50%;
-  background: radial-gradient(circle at 35% 30%, #a9b8a0, var(--sage) 70%);
+  /* 오브는 강조색으로 채워진다. 그 위 숫자는 먹색이어야 읽힌다.
+     --white 는 어둠에서 '한 겹 밝은 면'(#161b22)이라 배경과 같아진다. */
+  background: radial-gradient(circle at 35% 30%, var(--sage-deep), var(--sage) 70%);
   display: flex; align-items: center; justify-content: center;
-  color: var(--white);
+  color: #0b0e12;
   font-family: var(--font-serif);
   font-size: 1.4rem;
   box-shadow: 0 0 60px rgba(138, 154, 130, 0.4);
@@ -211,7 +213,7 @@
   font-size: 0.9rem;
   transition: all 0.2s var(--ease);
 }
-.pattern-chip.active { background: var(--sage); color: var(--white); border-color: var(--sage); }
+.pattern-chip.active { background: var(--sage); color: #0b0e12; border-color: var(--sage); }
 .pattern-chip.is-locked { opacity: 0.55; }
 .setting-row { display: flex; gap: var(--sp-2); justify-content: center; align-items: center; flex-wrap: wrap; }
 

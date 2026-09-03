@@ -253,7 +253,7 @@
 .custom-editor {
   margin-top: 1rem;
   padding: 1.1rem;
-  border: 1px solid var(--line, rgba(0, 0, 0, 0.1));
+  border: 1px solid var(--line, rgba(210, 224, 238, 0.12));
   border-radius: 14px;
 }
 .custom-editor__title {
@@ -300,7 +300,7 @@
 .ambient-chip {
   padding: 0.45rem 0.8rem;
   font-size: 0.92rem;
-  border: 1px solid var(--line, rgba(0, 0, 0, 0.15));
+  border: 1px solid var(--line, rgba(210, 224, 238, 0.12));
   border-radius: 999px;
   background: transparent;
   color: inherit;
@@ -308,7 +308,7 @@
 }
 .ambient-chip.active {
   border-color: var(--clay-deep, #8a6f52);
-  background: var(--surface-2, rgba(0, 0, 0, 0.04));
+  background: var(--surface-2, rgba(210, 224, 238, 0.12));
   font-weight: 600;
 }
 .ambient-chip.is-locked {

@@ -6,11 +6,11 @@
    ============================================================ */
 
 .mbsr-theme {
-  --sage: #7d8f86;
-  --sage-deep: #5d6f66;
-  --bg: #f4f6f4;
-  --bg-soft: #fbfcfb;
-  --bg-sunken: #e7ebe8;
+  --sage: #9ab0a5;        /* 8주 — 가라앉은 초록 */
+  --sage-deep: #b3c6bc;
+  --bg: #0d100e;
+  --bg-soft: #171b19;
+  --bg-sunken: #080a09;
 
   background: var(--bg);
 }
@@ -75,7 +75,7 @@
   display: flex; align-items: center; justify-content: center;
   font-family: var(--font-serif); font-weight: 700; font-size: 0.9rem;
 }
-.mb-week__n.is-done { background: var(--sage); color: #fff; }
+.mb-week__n.is-done { background: var(--sage); color: #0b0e12; }
 .mb-week__body { flex: 1; min-width: 0; }
 .mb-week__body b { display: block; font-size: 0.98rem; }
 .mb-week__body .muted { display: block; font-size: 0.8rem; margin-top: 1px; }

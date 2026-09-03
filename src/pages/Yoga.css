@@ -41,7 +41,7 @@
   font-size: 0.82rem;
   font-weight: 500;
 }
-.yoga-vs__tag--accent { background: var(--sage); color: #fff; }
+.yoga-vs__tag--accent { background: var(--sage); color: #0b0e12; }
 
 .yoga-elements {
   display: grid;
@@ -67,7 +67,8 @@
 /* 아쉬탕가 단계 카드 */
 .limb-list { display: flex; flex-direction: column; gap: var(--sp-2); }
 .limb-card { padding: var(--sp-3) var(--sp-4); }
-.limb-card--hi { border-color: var(--sage); box-shadow: var(--shadow); background: #f3f6ef; }
+/* 강조 카드. 어두운 바탕에선 "밝은 면"이 아니라 "한 겹 든 면"으로 표현한다 */
+.limb-card--hi { border-color: var(--sage); background: var(--bg-soft); }
 .limb-card__head { display: flex; align-items: flex-start; gap: var(--sp-2); }
 .limb-num {
   flex-shrink: 0;
@@ -78,7 +79,7 @@
   display: flex; align-items: center; justify-content: center;
   font-family: var(--font-serif); font-weight: 700;
 }
-.limb-card--hi .limb-num { background: var(--sage); color: #fff; }
+.limb-card--hi .limb-num { background: var(--sage); color: #0b0e12; }
 .limb-card__head h3 { font-size: 1.15rem; }
 .limb-short { color: var(--sage-deep); font-size: 0.9rem; font-weight: 500; margin-top: 2px; }
 .limb-desc { color: var(--ink-soft); font-size: 0.95rem; margin-top: var(--sp-2); line-height: 1.8; }
@@ -109,13 +110,17 @@
 
 /* 금기 경고 박스 */
 .warn-box {
-  background: #f7ece6;
-  border: 1px solid #e6cbbd;
+  /* 경고. 규정 ④: 경고색은 배경으로 쓰지 않고 글자·표식에만.
+     면은 가라앉히고 왼쪽 표식과 글자색으로 알린다. */
+  background: var(--bg-soft);
+  /* ⚠️ border 를 border-left 뒤에 쓰면 덮어쓴다. 순서를 뒤집는다 */
+  border: 1px solid var(--line);
+  border-left: 2px solid var(--ember);
   border-radius: 12px;
   padding: var(--sp-3);
   margin: var(--sp-3) 0;
 }
-.warn-box__title { color: #b0603f; font-weight: 600; margin-bottom: 0.3rem; }
+.warn-box__title { color: var(--ember); font-weight: 600; margin-bottom: 0.3rem; }
 .warn-box p { color: #8a5a45; font-size: 0.92rem; }
 
 /* ============================================================
@@ -123,14 +128,13 @@
    .yoga-theme 안에서 공용 액센트 변수를 지역 재정의 → 버튼·라벨·칩이 따뜻하게
    ============================================================ */
 .yoga-theme {
-  --sage: #c0844a;        /* 따뜻한 테라코타 액센트 */
-  --sage-deep: #9c6531;
-  --bg: #f7f2ea;          /* 살짝 더 따뜻한 배경 */
-  --bg-soft: #fdfaf4;
-  --bg-sunken: #f0e7da;
-
-  /* .page에는 배경이 없어 body(:root) 색이 비친다.
-     장르 색이 화면 전체에서 읽히도록 여기서 직접 칠한다. (위빠사나와 동일 처리) */
+  /* 어둠에서도 갈래가 구분되게. 바탕은 거의 같고 색조만 아주 살짝 다르다.
+     밝을 때처럼 면 전체를 물들이면 어둠에서는 탁해진다. */
+  --sage: #d9a86a;        /* 요가 — 따뜻한 황토 */
+  --sage-deep: #e8bd85;
+  --bg: #100e0c;
+  --bg-soft: #1a1714;
+  --bg-sunken: #0a0908;
   background: var(--bg);
 }
 
@@ -152,7 +156,7 @@
   inset: 0;
   z-index: 0;
   pointer-events: none;
-  background: var(--phase-color, #c0844a);
+  background: var(--phase-color, var(--sage));
   opacity: 0.12;
   transition: background-color var(--phase-dur, 4s) ease-in-out,
     opacity var(--phase-dur, 4s) ease-in-out;
@@ -200,7 +204,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #fff;
+  color: #0b0e12;
   font-family: var(--font-serif);
   font-size: 1.6rem;
   box-shadow: 0 0 60px rgba(192, 132, 74, 0.35);

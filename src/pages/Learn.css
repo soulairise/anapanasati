@@ -59,7 +59,7 @@
 /* 이미 걸어본 단계 */
 .stage-card.is-done .stage-card__num {
   background: var(--sage);
-  color: var(--white);
+  color: #0b0e12;
 }
 .stage-card.is-done {
   border-color: var(--sage);

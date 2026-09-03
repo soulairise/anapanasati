@@ -6,11 +6,11 @@
    ============================================================ */
 
 .metta-theme {
-  --sage: #c08497;        /* 따뜻한 로즈 */
-  --sage-deep: #9c6478;
-  --bg: #f8f3f4;
-  --bg-soft: #fdfafb;
-  --bg-sunken: #f1e5e8;
+  --sage: #cf9aa9;        /* 자애 — 로즈 */
+  --sage-deep: #dfb2bf;
+  --bg: #100d0f;
+  --bg-soft: #1a1618;
+  --bg-sunken: #0a0809;
 
   background: var(--bg);
 }
@@ -22,9 +22,9 @@
 
 .mt-vs { display: grid; grid-template-columns: 1fr 1fr; gap: var(--sp-2); margin-top: var(--sp-3); }
 .mt-vs__item { padding: var(--sp-2); background: var(--bg-sunken); border-radius: 12px; text-align: center; }
-.mt-vs__item--accent { background: var(--sage); color: #fff; }
+.mt-vs__item--accent { background: var(--sage); color: #0b0e12; }
 .mt-vs__item--accent .mt-vs__pali,
-.mt-vs__item--accent p { color: rgba(255, 255, 255, 0.88); }
+.mt-vs__item--accent p { color: rgba(11, 14, 18, 0.78); }
 .mt-vs__label { font-family: var(--font-serif); font-weight: 700; font-size: 1rem; }
 .mt-vs__pali { display: block; font-size: 0.78rem; color: var(--ink-faint); margin-top: 1px; }
 .mt-vs__item p { font-size: 0.88rem; color: var(--ink-soft); margin-top: 0.45rem; line-height: 1.65; }
@@ -45,7 +45,7 @@
   width: 26px; height: 26px;
   border-radius: 50%;
   background: var(--sage);
-  color: #fff;
+  color: #0b0e12;
   display: flex; align-items: center; justify-content: center;
   font-size: 0.8rem; font-weight: 600;
 }
@@ -193,3 +193,10 @@
   .mt-heart { width: 106px; height: 106px; }
   .mt-phrase { font-size: 1.3rem; }
 }
+
+/* 강조 면(밝은 등불색) 안에서는 글자가 먹색이어야 읽힌다.
+   바깥에서 쓰는 --ink-faint 는 어두운 글자라 여기선 안 보인다. */
+.mt-vs__item--accent .mt-vs__pali { color: rgba(11, 14, 18, 0.62); }
+/* ⚠️ .mt-vs__item p 가 뒤에 선언돼 있어 --accent p 를 덮는다.
+   같은 구체성으로 다시 못 박아야 밝은 면 위 글자가 먹색이 된다. */
+.mt-vs__item.mt-vs__item--accent p { color: rgba(11, 14, 18, 0.78); }
