@@ -222,3 +222,66 @@ button {
   :root { --sp-6: 3rem; }
   .page { padding: var(--sp-5) 0; }
 }
+
+/* ============================================================
+   홈(v3)에서의 크롬 — 상단바·푸터
+   
+   홈은 늘 어둡다. 상단바와 푸터는 전역 토큰을 쓰는 공통 부품이라
+   그대로 두면 어두운 화면 위에 미색 띠가 얹힌다.
+   화면 CSS 11개를 건드리지 않고 크롬만 맞춘다.
+   
+   ⚠️ 안쪽 27개 화면은 아직 미색이다. 홈에서 넘어가면 밝아진다.
+      전체 이관은 별도 작업으로 남아 있다.
+   
+   값은 Home.css 의 v3 토큰과 같은 것을 쓴다. 한쪽만 바꾸면 어긋난다.
+   ============================================================ */
+:root[data-chrome='dark'] {
+  --bg-blur: rgba(13, 17, 22, 0.86);
+}
+:root[data-chrome='dark'] .navbar {
+  border-bottom-color: rgba(210, 224, 238, 0.11);
+}
+:root[data-chrome='dark'] .navbar__link,
+:root[data-chrome='dark'] .navbar__menu-btn {
+  color: #aeb9c5;
+}
+:root[data-chrome='dark'] .navbar__link:hover,
+:root[data-chrome='dark'] .navbar__menu-btn:hover {
+  color: #f2f5f8;
+  background: rgba(210, 224, 238, 0.07);
+}
+:root[data-chrome='dark'] .navbar__brand,
+:root[data-chrome='dark'] .brand-text {
+  color: #f2f5f8;
+}
+/* 강조색은 하나(규정 ④). 프리미엄 링크는 등불색으로 두되
+   같은 색을 쓰는 곳이 홈 본문의 주 단추와 겹치지 않게 한 톤 낮춘다. */
+:root[data-chrome='dark'] .navbar__link--premium {
+  color: #d9c39a;
+}
+:root[data-chrome='dark'] .navbar__link.active {
+  color: #f2f5f8;
+}
+/* 펼친 메뉴도 같은 어둠으로 */
+:root[data-chrome='dark'] .navbar__dropdown {
+  background: #161b22;
+  border-color: rgba(210, 224, 238, 0.11);
+}
+:root[data-chrome='dark'] .navbar__dropdown-item {
+  color: #aeb9c5;
+}
+:root[data-chrome='dark'] .navbar__dropdown-item:hover {
+  background: rgba(210, 224, 238, 0.07);
+  color: #f2f5f8;
+}
+:root[data-chrome='dark'] .navbar__dropdown-hint {
+  color: #77848f;
+}
+/* 푸터 */
+:root[data-chrome='dark'] .site-footer {
+  border-top-color: rgba(210, 224, 238, 0.11);
+  color: #77848f;
+}
+:root[data-chrome='dark'] .site-footer a {
+  color: #aeb9c5;
+}

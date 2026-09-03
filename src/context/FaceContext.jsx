@@ -39,6 +39,17 @@ export function FaceProvider({ children }) {
     return () => root.removeAttribute('data-face')
   }, [face, isHome])
 
+  // 홈(v3)은 늘 어둡다. 상단바와 푸터는 전역 토큰을 쓰는 공통 부품이라
+  // 그대로 두면 어두운 화면 위에 미색 띠가 얹힌다.
+  // 화면 CSS 11개를 건드리지 않고 크롬만 맞추기 위해 뿌리에 표시를 남긴다.
+  // ⚠️ 안쪽 27개 화면은 아직 미색이다. 전체 이관은 별도 작업.
+  useEffect(() => {
+    const root = document.documentElement
+    if (isHome) root.setAttribute('data-chrome', 'dark')
+    else root.removeAttribute('data-chrome')
+    return () => root.removeAttribute('data-chrome')
+  }, [isHome])
+
   const toggleFace = () => {
     const next = face === 'moon' ? 'sun' : 'moon'
     setFace(next)
