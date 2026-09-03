@@ -18,6 +18,7 @@
   height: 64px;
 }
 .navbar__brand {
+  min-height: 44px;
   font-family: var(--font-serif);
   font-weight: 700;
   font-size: 1.15rem;
@@ -32,7 +33,13 @@
   align-items: center;
   gap: var(--sp-1);
 }
+/* 규정 ②: 모든 탭 대상은 44×44px 이상.
+   실측(375×812)에서 상단 바 링크가 31~35px 이었다. 폰에서 엄지로 누르면
+   빗나간다. 글자 크기는 그대로 두고 눌리는 면적만 늘린다. */
 .navbar__link {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
   padding: 0.5rem 0.9rem;
   border-radius: 999px;
   font-size: 0.95rem;

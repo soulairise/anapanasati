@@ -1,0 +1,149 @@
+/* ============================================================
+   홈 — 3레이어 정보구조
+   .hero / .flow-grid / .flow-card는 App.css의 기존 클래스를 재사용한다.
+   ============================================================ */
+
+/* ---------- 1층 · 목적별 진입로 ---------- */
+.goals { margin-top: var(--sp-5); }
+.goals__title {
+  font-size: 1.35rem;
+  text-align: center;
+  margin-bottom: var(--sp-3);
+}
+.goals__list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  max-width: 34rem;
+  margin: 0 auto;
+}
+
+/* 한 번 누르면 목록을 거치지 않고 바로 수행 화면으로 */
+.goal {
+  display: grid;
+  grid-template-columns: auto 1fr auto auto;
+  align-items: center;
+  gap: var(--sp-2);
+  width: 100%;
+  padding: 0.95rem var(--sp-3);
+  text-align: left;
+  background: var(--bg-soft);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  transition: all 0.2s var(--ease);
+}
+.goal:hover {
+  border-color: var(--sage);
+  box-shadow: var(--shadow);
+  transform: translateY(-1px);
+}
+.goal__icon { font-size: 1.35rem; line-height: 1; }
+.goal__label {
+  font-family: var(--font-serif);
+  font-weight: 700;
+  font-size: 1.02rem;
+  color: var(--ink);
+}
+.goal__hint { font-size: 0.85rem; color: var(--ink-faint); white-space: nowrap; }
+.goal__arrow { color: var(--sage-deep); font-size: 1.05rem; }
+
+/* ---------- 2층 · 수련의 세 갈래 ---------- */
+.paths { margin-top: var(--sp-6); }
+.paths__title {
+  font-size: 1.35rem;
+  text-align: center;
+  margin-bottom: var(--sp-3);
+}
+.paths .flow-grid { margin-top: 0; }
+.path-card { display: block; }
+.path-card__count {
+  display: inline-block;
+  margin-top: var(--sp-2);
+  padding: 0.2rem 0.7rem;
+  border-radius: 999px;
+  background: var(--bg-sunken);
+  color: var(--ink-soft);
+  font-size: 0.8rem;
+}
+.paths__more {
+  margin-top: var(--sp-3);
+  text-align: center;
+  font-size: 0.92rem;
+  color: var(--ink-faint);
+}
+.paths__more a { color: var(--sage-deep); border-bottom: 1px solid var(--sage); }
+
+/* ---------- 3층 · 뿌리 (조용히) ---------- */
+.roots {
+  margin-top: var(--sp-6);
+  padding-top: var(--sp-3);
+  border-top: 1px solid var(--line);
+  text-align: center;
+}
+.roots p {
+  font-size: 0.85rem;
+  color: var(--ink-faint);
+  line-height: 1.9;
+}
+
+@media (max-width: 640px) {
+  .goals__title,
+  .paths__title { font-size: 1.2rem; }
+
+  /* 좁은 화면에서는 힌트를 아래 줄로 내린다.
+     grid-row만 주고 grid-column을 비우면 자동배치가 1열로 밀어넣으므로
+     네 요소 모두 위치를 명시한다. */
+  .goal {
+    grid-template-columns: auto 1fr auto;
+    row-gap: 0.15rem;
+    padding: 0.85rem var(--sp-2);
+  }
+  .goal__icon  { grid-column: 1; grid-row: 1 / 3; }
+  .goal__label { grid-column: 2; grid-row: 1; }
+  .goal__hint  { grid-column: 2; grid-row: 2; white-space: normal; }
+  .goal__arrow { grid-column: 3; grid-row: 1 / 3; }
+}
+
+/* ── 해 / 달 전환 ───────────────────────────────────────
+   문 앞의 두 얼굴. 하타(haṭha)를 해와 달로 푸는 전통 해석에서 왔다.
+   앱에 이미 있는 나디쇼다나(이다=달·핑갈라=해)와 같은 뿌리다. */
+.hero {
+  position: relative;
+}
+.face-toggle {
+  position: absolute;
+  top: 0;
+  right: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.4rem 0.7rem;
+  font-size: 0.88rem;
+  line-height: 1;
+  color: var(--ink-soft);
+  background: transparent;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  cursor: pointer;
+  transition: color 200ms ease, border-color 200ms ease;
+}
+.face-toggle:hover {
+  color: var(--ink);
+  border-color: var(--ink-faint);
+}
+/* 좁은 화면에서는 글자를 빼고 아이콘만 남긴다 — 제목과 겹치지 않게 */
+@media (max-width: 480px) {
+  .face-toggle__text {
+    display: none;
+  }
+}
+
+/* 얼굴마다 한 줄 — 왜 이 얼굴인지 말해준다 */
+.hero__note {
+  margin: 1.1rem auto 0;
+  max-width: 32rem;
+  font-family: var(--font-serif);
+  font-size: 1rem;
+  line-height: 1.9;
+  color: var(--ink-soft);
+}

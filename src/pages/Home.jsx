@@ -1,140 +1,150 @@
+import { useEffect, useRef, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { useFace } from '../context/FaceContext'
 import './Home.css'
 
 /*
-  홈은 3레이어 정보구조의 첫 층이다 (docs/PRODUCT_STRATEGY.md 5).
-    1층(유입) = 목적   "오늘 어떤 마음이세요?"
-    2층(전환) = 여정   16일 여정
-    3층(잔존) = 전통   맨 아래 조용히
+  홈 v3 — 어둠 속의 한 점 빛
 
-  1층 언어 규칙: 표면에는 전통 용어를 쓰지 않는다.
-  일반 사용자는 "아나빠나사띠"가 아니라 "잠이 안 와요"로 들어온다.
+  v2(밝은 회색 + 얇은 선 + 목록)는 미니멀을 더 밀어붙인 것이라
+  "정돈됨"이 아니라 "미완성"으로 읽혔다. 필요한 건 절제가 아니라 밀도였다.
+
+  방향을 바꾼 근거 (frontend-design 스킬: "주제가 가진 세계에서 길어 올려라")
+    · 사람들은 이 앱을 밤에, 불 끄고, 침대에서 연다.
+      밝은 화면은 그 순간 눈을 깨운다. 어둠이 실제 사용 맥락이다.
+    · 숨은 보이지 않는다. 보이는 것은 숨이 만드는 "변화" 뿐이다.
+      그래서 형태가 아니라 빛의 세기가 호흡한다.
+    · 아나빠나사띠는 부드럽지만 정밀하다. 4초·6초·16단계.
+      그래서 부드러운 빛 위에 정밀한 눈금을 겹친다. 그 긴장이 이 화면의 성격이다.
+
+  첫인상 (스킬: "큰 숫자에 작은 라벨로 도망가지 마라")
+    화면 전체가 분당 6회로 밝아졌다 어두워진다.
+    글을 읽기 전에 호흡이 먼저 맞는다.
 */
 
-// 목적 → 실습 직결. 목록을 거치지 않고 바로 수행 화면으로 보낸다.
-// pranayama.js에 goals 태그가 아직 없어 지금은 여기에 직접 매핑한다.
-// 태그 시스템은 실습이 더 늘어난 뒤에 도입해도 늦지 않다.
 const GOALS = [
-  { icon: '😴', label: '잠이 안 와요', to: '/vipassana/body-scan/practice', hint: '몸 훑기 · 10분' },
-  { icon: '😰', label: '불안해요', to: '/vipassana/breath-noting/practice', hint: '숨의 일어남과 사라짐 · 5분' },
-  { icon: '🎯', label: '집중이 안 돼요', to: '/breathe', hint: '기본 호흡 · 5분' },
-  { icon: '😮‍💨', label: '스트레스가 쌓였어요', to: '/vipassana/walking/practice', hint: '걸으며 알아차리기 · 5분' },
-  { icon: '🌅', label: '아침을 열고 싶어요', to: '/yoga', hint: '요가 호흡법' },
+  { label: '잠이 안 와요', hint: '몸 훑기', min: 10, to: '/vipassana/body-scan/practice' },
+  { label: '불안해요', hint: '숨의 일어남과 사라짐', min: 5, to: '/vipassana/breath-noting/practice' },
+  { label: '집중이 안 돼요', hint: '기본 호흡', min: 5, to: '/breathe' },
+  { label: '스트레스가 쌓였어요', hint: '걸으며 알아차리기', min: 5, to: '/vipassana/walking/practice' },
+  { label: '아침을 열고 싶어요', hint: '요가 호흡법', min: null, to: '/yoga' },
 ]
 
-// 수련 3갈래 — 이제 앱에 무엇이 있는지 홈에서 바로 보여준다
 const PATHS = [
-  { icon: '🫧', name: '호흡하기', sub: '숨을 지켜보기', count: '16단계', to: '/breathe' },
-  { icon: '🌀', name: '요가 호흡', sub: '숨을 다스리기', count: '9가지 기법', to: '/yoga' },
-  { icon: '💧', name: '관찰 수행', sub: '있는 그대로 보기', count: '6가지 실습', to: '/vipassana' },
+  { verb: '지켜보기', name: '호흡하기', detail: '숨을 있는 그대로 따라간다', count: '16단계', to: '/breathe' },
+  { verb: '다스리기', name: '요가 호흡', detail: '숨의 길이와 통로를 바꾼다', count: '9가지 기법', to: '/yoga' },
+  { verb: '보기', name: '관찰 수행', detail: '숨을 창으로 삼아 몸과 마음을 본다', count: '6가지 실습', to: '/vipassana' },
 ]
 
-// 첫 화면의 두 얼굴. 구조는 같고 온도만 다르다.
-//
-// 들숨은 시작이다 — 아기가 세상에 나와 처음 한 일은 우는 것이 아니라
-// 숨을 들이는 것이다(폐가 양수로 차 있어 강한 흡기로 열어야 한다).
-// 날숨은 놓음이다 — 우리 기본 패턴이 4-0-6-0으로 날숨을 길게 두는 이유이기도 하다.
-//
-// ⚠️ "사람은 들숨으로 태어나 날숨으로 죽는다"고 쓰지 않는다.
-//    앞쪽은 사실이지만 뒤쪽은 단정할 수 없다(임종기에는 들이쉬는 헐떡임이 먼저 온다).
-//    사별을 겪은 분이 읽는다.
-const FACE_COPY = {
-  sun: {
-    eyebrow: '하루 3분, 숨을 지켜보는 훈련',
-    title: (
-      <>
-        들숨과 날숨,
-        <br />그 사이에 머무르다
-      </>
-    ),
-    sub: '잠들기 어려운 밤, 불안하고 산만한 마음을 위한 호흡 훈련. 2,500년 된 순서를 한국어로, 하루 한 걸음씩.',
-    note: '생은 들이쉬는 것으로 시작합니다. 세상에 나와 처음 한 일은 우는 것이 아니라, 숨을 들이는 것이었습니다.',
-    cta: '지금 3분 호흡하기',
-  },
-  moon: {
-    eyebrow: '오늘을 내려놓는 시간',
-    title: (
-      <>
-        길게 내쉬면,
-        <br />몸이 먼저 알아차립니다
-      </>
-    ),
-    sub: '잠들기 어려운 밤을 위한 호흡. 들이쉬는 것보다 길게 내쉬면 몸이 쉬는 쪽으로 기웁니다. 3분이면 됩니다.',
-    note: '하루 종일 쥐고 있던 것을, 한 번의 긴 날숨에 놓아 봅니다.',
-    cta: '지금 3분 내쉬기',
-  },
-}
+// 들숨 4초 · 날숨 6초. 화면의 모든 리듬이 이 숫자에서 나온다.
+const IN = 4
+const OUT = 6
 
-export default function Home() {
+export default function HomeV2() {
   const navigate = useNavigate()
-  const { face, toggleFace } = useFace()
-  const copy = FACE_COPY[face]
+  const [phase, setPhase] = useState('in')
+  const timer = useRef(null)
+
+  // 빛과 같은 리듬으로 글자도 바뀐다. 화면이 숨을 쉰다는 걸 말로도 알려 준다.
+  useEffect(() => {
+    const reduce = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
+    if (reduce) return
+    let inhale = true
+    const step = () => {
+      setPhase(inhale ? 'in' : 'out')
+      timer.current = setTimeout(() => {
+        inhale = !inhale
+        step()
+      }, (inhale ? IN : OUT) * 1000)
+    }
+    step()
+    return () => clearTimeout(timer.current)
+  }, [])
 
   return (
-    <div className="page">
-      <div className="container">
-        <section className="hero">
-          <button
-            type="button"
-            className="face-toggle"
-            onClick={toggleFace}
-            aria-pressed={face === 'moon'}
-            title={face === 'moon' ? '해의 얼굴로 보기' : '달의 얼굴로 보기'}
-          >
-            <span aria-hidden="true">{face === 'moon' ? '🌙' : '☀️'}</span>
-            <span className="face-toggle__text">
-              {face === 'moon' ? '달' : '해'}
-            </span>
-          </button>
+    <div className="v3">
+      {/* 화면 전체가 호흡한다 — 형태가 아니라 빛이 */}
+      <div className="v3-field" aria-hidden="true">
+        <span className="v3-field__glow" />
+        <span className="v3-field__grain" />
+      </div>
 
-          <p className="eyebrow">{copy.eyebrow}</p>
-          <h1 className="hero__title">{copy.title}</h1>
-          <p className="hero__sub">{copy.sub}</p>
-          <p className="hero__note">{copy.note}</p>
-          <div className="hero__cta">
-            <Link to="/breathe" className="btn btn--primary">{copy.cta}</Link>
-            <Link to="/learn" className="btn btn--ghost">16일 여정 보기</Link>
+      <div className="v3-wrap">
+        <section className="v3-hero">
+          <p className="v3-kicker">
+            <span className="v3-kicker__sans">ĀNĀPĀNASATI</span>
+            <span className="v3-kicker__rule" />
+            <span>들숨날숨에 대한 알아차림</span>
+          </p>
+
+          <h1 className="v3-title">
+            숨은 늘 여기 있었다.
+            <br />
+            <em>바라보기 전까지는</em>
+            <br />
+            없는 것과 같았을 뿐이다.
+          </h1>
+
+          <div className="v3-hero__foot">
+            <div className="v3-hero__cta">
+              <Link to="/breathe" className="v3-btn">지금 3분 앉기</Link>
+              <Link to="/learn" className="v3-link"><span>열여섯 걸음 보기</span></Link>
+            </div>
+
+            {/* 정밀한 계기 — 부드러운 빛 위에 겹치는 긴장 */}
+            <div className="v3-meter">
+              <div className="v3-meter__bar">
+                <span className={`v3-meter__fill ${phase === 'in' ? 'is-in' : 'is-out'}`} />
+              </div>
+              <div className="v3-meter__read">
+                <span className={phase === 'in' ? 'on' : ''}>들숨 {IN}초</span>
+                <span className={phase === 'out' ? 'on' : ''}>날숨 {OUT}초</span>
+                <span className="v3-meter__rate">분당 {(60 / (IN + OUT)).toFixed(0)}회</span>
+              </div>
+            </div>
           </div>
         </section>
 
-        {/* 1층 — 목적으로 들어오기 */}
-        <section className="goals">
-          <h2 className="goals__title">오늘 어떤 마음이세요?</h2>
-          <div className="goals__list">
+        <section className="v3-sec">
+          <h2 className="v3-sec__title">
+            <span className="v3-sec__num">01</span> 오늘 어떤 마음이신가요
+          </h2>
+          <ul className="v3-goals">
             {GOALS.map((g) => (
-              <button key={g.label} className="goal" onClick={() => navigate(g.to)}>
-                <span className="goal__icon">{g.icon}</span>
-                <span className="goal__label">{g.label}</span>
-                <span className="goal__hint">{g.hint}</span>
-                <span className="goal__arrow">→</span>
-              </button>
+              <li key={g.label}>
+                <button className="v3-goal" onClick={() => navigate(g.to)}>
+                  <span className="v3-goal__label">{g.label}</span>
+                  <span className="v3-goal__hint">{g.hint}</span>
+                  <span className="v3-goal__min">{g.min ? `${g.min}분` : '—'}</span>
+                </button>
+              </li>
             ))}
-          </div>
+          </ul>
         </section>
 
-        {/* 2층 — 수련의 세 갈래 */}
-        <section className="paths">
-          <h2 className="paths__title">수련의 세 갈래</h2>
-          <div className="flow-grid">
+        <section className="v3-sec">
+          <h2 className="v3-sec__title">
+            <span className="v3-sec__num">02</span> 숨을 대하는 세 가지 태도
+          </h2>
+          <div className="v3-paths">
             {PATHS.map((p) => (
-              <Link key={p.name} to={p.to} className="card flow-card path-card">
-                <div className="flow-card__icon">{p.icon}</div>
-                <h3>{p.name}</h3>
-                <p>{p.sub}</p>
-                <span className="path-card__count">{p.count}</span>
+              <Link key={p.name} to={p.to} className="v3-path">
+                <span className="v3-path__verb">{p.verb}</span>
+                <span className="v3-path__name">{p.name}</span>
+                <span className="v3-path__detail">{p.detail}</span>
+                <span className="v3-path__count">{p.count}</span>
               </Link>
             ))}
           </div>
-          <p className="paths__more">
-            수행을 마친 뒤엔 <Link to="/journal">수행일지</Link>에 오늘의 마음을 남겨보세요.
-          </p>
         </section>
 
-        {/* 3층 — 전통을 숨기지 않고, 조용히 */}
-        <footer className="roots">
-          <p>이 앱이 안내하는 순서는 2,500년 전 경전이 말한 열여섯 걸음을 따릅니다.</p>
-          <p>특정 종교를 권하지 않습니다.</p>
+        <footer className="v3-tail">
+          <p>
+            수행을 마친 뒤엔 <Link to="/journal">수행일지</Link>에 오늘의 마음을 남겨보세요.
+          </p>
+          <p className="v3-tail__note">
+            이 앱이 안내하는 순서는 2,500년 전 경전이 말한 열여섯 걸음을 따릅니다.
+            특정 종교를 권하지 않습니다.
+          </p>
         </footer>
       </div>
     </div>

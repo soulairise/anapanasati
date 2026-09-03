@@ -2,7 +2,7 @@ import { Routes, Route, Navigate } from 'react-router-dom'
 import Navbar from './components/Navbar'
 import { useAuth } from './context/AuthContext'
 import Home from './pages/Home'
-import HomeV2 from './pages/HomeV2'
+import HomeOld from './pages/HomeOld'
 import Learn from './pages/Learn'
 import StageDetail from './pages/StageDetail'
 import Breathe from './pages/Breathe'
@@ -48,8 +48,8 @@ export default function App() {
       <main>
         <Routes>
           <Route path="/" element={<Home />} />
-          {/* 새 디자인 미리보기. 기존 홈과 나란히 비교하려고 임시로 둔다. */}
-          <Route path="/new" element={<HomeV2 />} />
+          {/* 옛 홈. 되돌릴 판단이 끝나면 이 라우트와 HomeOld 를 지운다. */}
+          <Route path="/old" element={<HomeOld />} />
           <Route path="/learn" element={<Learn />} />
           <Route path="/learn/:id" element={<StageDetail />} />
           <Route path="/breathe" element={<Breathe />} />

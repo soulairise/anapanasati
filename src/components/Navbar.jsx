@@ -50,7 +50,8 @@ export default function Navbar() {
     <nav className="navbar">
       <div className="container navbar__inner">
         <NavLink to="/" className="navbar__brand">
-          <span className="brand-icon">🌬️</span>
+          {/* 규정 6절: 이모지를 표시로 쓰지 않는다. 기기마다 다르게 보이고
+              브랜드가 없다. 이름만 남긴다. */}
           <span className="brand-text">숨결의 길</span>
           {/* 팔리어 병기 제거 — 표면(1층)에는 전통 용어를 쓰지 않는다.
               전통은 학습·상세 화면(2층)에서 드러낸다. 근거: docs/PRODUCT_STRATEGY.md 2-3 */}
